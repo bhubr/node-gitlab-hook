@@ -30,24 +30,26 @@ var ipRanges = {
   // gitlab: []
 }
 
-function checkIp(req) {
-  const ip = req.ip || req.headers['x-real-ip'];
-  console.log('checkIp', req.ip, req.headers['x-real-ip'], '=>', ip);
-  for(provider in ipRanges) {
-    console.log(ipRanges[provider]);
+function getCheckIp(provider) {
+  return function(req) {
+    const ip = req.ip || req.headers['x-real-ip'];
+    console.log('checkIp', req.ip, req.headers['x-real-ip'], '=>', ip, provider);
     var ipRangesForProvider = ipRanges[provider];
-    var matches = ipRangesForProvider.reduce(function(carry, range) {
+    console.log('check for provider', provider, ipRangesForProvider)
+    for(var i = 0; i < ipRangesForProvider.length ; i++) {
       console.log('check ip vs range', ip, range, ipRangeCheck(ip, range));
-      return carry || ipRangeCheck(ip, range);
-    }, false);
-    console.log('matches?', matches);
-    return matches;
+      if(ipRangeCheck(ip, range)) {
+        return true;
+      }
+    }
+    console.log(' => NO matches for provider', provider);
+    return false;
   }
 }
 
 var originatorCheckers = {
-  bitbucket: checkIp,
-  github: checkIp,
+  bitbucket: checkIp('bitbucket'),
+  github: checkIp('github'),
   gitlab: function(req) {
     console.log('gitlab orig check', headers);
     return req.headers['x-gitlab-event'] !== undefined;
