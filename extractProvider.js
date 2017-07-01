@@ -9,7 +9,7 @@ var ipRanges = {
 }
 
 /**
- * Get checker function
+ * Get IP range match function
  */
 function getCheckIp(provider) {
   return function(req) {
@@ -48,6 +48,7 @@ function extractProvider(req) {
       return provider;
     }
   }
+  throw new Error('Unable to recognize provider (GitHub/GitLab/BitBucket) from request headers');
 }
 
 module.exports = extractProvider;

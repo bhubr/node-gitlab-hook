@@ -33,6 +33,7 @@ var securityCheckers = {
     }
   },
 
+  // GitHub doc: https://developer.github.com/webhooks/securing/
   github: function(headers, config, body) {
     // console.log('## headers for GitHub', headers);
     if(typeof body !== 'string') {
