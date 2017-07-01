@@ -34,8 +34,9 @@ function checkIp(req) {
   const ip = req.ip || req.headers['x-real-ip'];
   console.log('checkIp', req.ip, req.headers['x-real-ip'], '=>', ip);
   for(provider in ipRanges) {
+    console.log(ipRanges[provider]);
     var ipRangesForProvider = ipRanges[provider];
-    var matches = ipRanges.reduce(function(carry, range) {
+    var matches = ipRangesForProvider.reduce(function(carry, range) {
       console.log('check ip vs range vs ip', ip, range, ipRangeCheck(req.ip, range));
       return carry || ipRangeCheck(ip, range);
     }, false);
