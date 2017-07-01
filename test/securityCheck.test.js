@@ -149,7 +149,6 @@ describe('all tests', () => {
       }
     };
 
-    // var body = (fs.readFileSync(__dirname + '/sample-payload-github.json')).toString();
     var passed = securityCheck(req, 'github', { secretToken: 'MyStr0ngS3cr3t' }, '{"foo":"bar"}');
     assert.ok(passed.success);
     assert.equal(passed.reason, undefined);
