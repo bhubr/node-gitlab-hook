@@ -31,6 +31,7 @@ var ipRanges = {
 }
 
 function checkIp(req) {
+  console.log('checkIp', req);
   for(provider in ipRanges) {
     var ipRangesForProvider = ipRanges[provider];
     var matches = ipRanges.reduce(function(carry, range) {
@@ -47,6 +48,7 @@ var originatorCheckers = {
   bitbucket: checkIp,
   github: checkIp,
   gitlab: function(req) {
+    console.log('gitlab orig check', headers);
     return req.headers['x-gitlab-event'] !== undefined;
   }
 }
@@ -321,7 +323,7 @@ function serverHandler(req, res) {
 
   });
 
-  console.log('### checking originator', Object.keys(originatorCheckers));
+  console.log('### checking originator', Object.keys(originatorCheckers), req);
   for(provider in originatorCheckers) {
     console.log('  # checking', provider, '=>', originatorCheckers[provider](req));
     if(originatorCheckers[provider](req)) {
