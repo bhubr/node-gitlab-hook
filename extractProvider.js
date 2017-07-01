@@ -8,6 +8,9 @@ var ipRanges = {
   github: ['192.30.252.0/22', '85.199.108.0/22'],
 }
 
+/**
+ * Get checker function
+ */
 function getCheckIp(provider) {
   return function(req) {
     const ip = req.headers['x-real-ip'] || req.ip || (req.socket && req.socket.remoteAddress) ||
@@ -33,7 +36,9 @@ var originatorCheckers = {
   }
 }
 
-
+/**
+ * Find provider from req headers and IP
+ */
 function extractProvider(req) {
   
   console.log('### checking originator', Object.keys(originatorCheckers));
