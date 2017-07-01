@@ -43,6 +43,7 @@ function checkIp(req) {
     if(matches) {
       return provider;
     }
+    return false;
   }
 }
 
@@ -325,9 +326,9 @@ function serverHandler(req, res) {
 
   });
 
-  console.log('### checking originator', Object.keys(originatorCheckers), req);
+  console.log('### checking originator', Object.keys(originatorCheckers));
   for(provider in originatorCheckers) {
-    console.log('  # checking', provider, '=>', originatorCheckers[provider](req));
+    console.log('\n\n  # checking', provider, '=>', originatorCheckers[provider](req));
     if(originatorCheckers[provider](req)) {
       console.log('found!! provider:', provider);
       break;
