@@ -15,11 +15,87 @@ var Path = require('path');
 var Os = require('os');
 var Tmp = require('temp'); Tmp.track();
 var Util = require('util');
+var ipRangeCheck = require("ip-range-check");
+
+// per-provider IPs
+var ipRanges = {
+
+  // source: https://confluence.atlassian.com/bitbucket/what-are-the-bitbucket-cloud-ip-addresses-i-should-use-to-configure-my-corporate-firewall-343343385.html
+  bitbucket: ['104.192.143.192/28', '104.192.143.208/28', '104.192.143.0/24', '34.198.203.127', '34.198.178.64'],
+
+  // source: https://help.github.com/articles/github-s-ip-addresses/#service-hook-ip-addresses
+  github: ['192.30.252.0/22', '85.199.108.0/22'],
+
+  // source: https://gitlab.com/gitlab-com/infrastructure/issues/434
+  // gitlab: []
+}
+
+function checkIp(req) {
+  for(provider in ipRanges) {
+    var ipRangesForProvider = ipRanges[provider];
+    var matches = ipRanges.reduce(function(carry, range) {
+      console.log('check ip vs range vs ip', req.ip, range, ipRangeCheck(req.ip, range));
+      return carry || ipRangeCheck(req.ip, range);
+    }, false);
+    if(matches) {
+      return provider;
+    }
+  }
+}
+
+var originatorCheckers = {
+  bitbucket: checkIp,
+  github: checkIp,
+  gitlab: function(req) {
+    return req.headers['x-gitlab-event'] !== undefined;
+  }
+}
+
+var securityCheckers = {
+  bitbucket: function(headers, config) {
+    return { success: true };
+  },
+
+  gitlab: function(headers, config) {
+    if(config.secretToken === undefined && headers['x-gitlab-token'] === undefined) {
+      return { success: true };
+    }
+    if(config.secretToken === undefined && headers['x-gitlab-token'] !== undefined) {
+      return {
+        success: false,
+        reason: 'Secret token set in GitLab but not expected'
+      }
+    }
+    else if(config.secretToken !== undefined && headers['x-gitlab-token'] == undefined) {
+      return {
+        success: false,
+        reason: 'Secret token expected but not set in GitLab'
+      }
+    }
+    else {
+      var payload = {
+        success: config.secretToken === headers['x-gitlab-token']
+      };
+      if(! payload.success) {
+        payload.reason = 'Secret token does not match expected value (received: ' +
+          headers['x-gitlab-token'] + ', expected: ' + config.secretToken + ')';
+      }
+      return payload;
+    }
+  },
+
+  github: function(headers, config) {
+    console.log('## headers for GitHub', headers);
+    return { success: true };
+  },
+
+}
+
 var inspect = Util.inspect;
 var isArray = Util.isArray;
 
-var GitLabHook = function(_options, _callback) {
-  if (!(this instanceof GitLabHook)) return new GitLabHook(_options, _callback);
+var WebhookListener = function(_options, _callback) {
+  if (!(this instanceof WebhookListener)) return new WebhookListener(_options, _callback);
   var callback = null, options = null;
   if (typeof _options === 'function') {
     callback = _options;
@@ -28,9 +104,9 @@ var GitLabHook = function(_options, _callback) {
     options =  _options;
   }
   options = options || {};
-  this.configFile = options.configFile || 'gitlabhook.conf';
+  this.configFile = options.configFile || 'WebhookListener.conf';
   this.configPathes = options.configPathes ||
-    ['/etc/gitlabhook/', '/usr/local/etc/gitlabhook/', '.'];
+    ['/etc/WebhookListener/', '/usr/local/etc/WebhookListener/', '.'];
   this.port = options.port || 3420;
   this.host = options.host || '0.0.0.0';
   this.secretToken = options.secretToken;
@@ -38,6 +114,7 @@ var GitLabHook = function(_options, _callback) {
   this.keep = (typeof options.keep === 'undefined') ? false : options.keep;
   this.logger = options.logger;
   this.callback = callback;
+  this.allOptions = options;
 
   var active = false, tasks;
 
@@ -69,7 +146,7 @@ var GitLabHook = function(_options, _callback) {
   if (active) this.server = Http.createServer(serverHandler.bind(this));
 };
 
-GitLabHook.prototype.listen = function(callback) {
+WebhookListener.prototype.listen = function(callback) {
   var self = this;
   if (typeof self.server !== 'undefined') {
     self.server.listen(self.port, self.host, function () {
@@ -167,7 +244,7 @@ function executeShellCmds(self, address, data) {
 
     self.logger.info('cmds: ' + inspect(cmds) + '\n');
 
-    Tmp.mkdir({dir:Os.tmpDir(), prefix:'gitlabhook.'}, function(err, path) {
+    Tmp.mkdir({dir:Os.tmpDir(), prefix:'WebhookListener.'}, function(err, path) {
       if (err) {
         self.logger.error(err);
         return;
@@ -181,6 +258,13 @@ function executeShellCmds(self, address, data) {
   } else {
     self.logger.info('No related commands for repository "' + repo + '"');
   }
+}
+
+/**
+ * Get provider (gitlab, github, bitbucket) from IP address
+ */
+function getProvider(ip) {
+
 }
 
 function serverHandler(req, res) {
@@ -236,6 +320,19 @@ function serverHandler(req, res) {
     }
 
   });
+
+  console.log('### checking originator', Object.keys(originatorCheckers));
+  for(provider in originatorCheckers) {
+    console.log('  # checking', provider, '=>', originatorCheckers[provider](req));
+    if(originatorCheckers[provider](req)) {
+      console.log('found!! provider:', provider);
+      break;
+    }
+  }
+  var providerConfig = this.allOptions[provider] || {};
+  var securityCheckResult = securityCheckers[provider](req.headers);
+  console.log('## security check, conf for provider... ok ?', provider, providerConfig, securityCheckResult);
+
   if(this.secretToken && req.headers['x-gitlab-token'] !== this.secretToken) {
     return reply(401, res);
   }
@@ -267,5 +364,5 @@ function pad(n, width, z) {
   return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
 
-module.exports = GitLabHook;
+module.exports = WebhookListener;
 
