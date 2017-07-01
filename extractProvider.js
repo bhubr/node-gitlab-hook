@@ -2,15 +2,10 @@ var ipRangeCheck = require("ip-range-check");
 
 // per-provider IPs
 var ipRanges = {
-
   // source: https://confluence.atlassian.com/bitbucket/what-are-the-bitbucket-cloud-ip-addresses-i-should-use-to-configure-my-corporate-firewall-343343385.html
   bitbucket: ['104.192.143.192/28', '104.192.143.208/28', '104.192.143.0/24', '34.198.203.127', '34.198.178.64'],
-
   // source: https://help.github.com/articles/github-s-ip-addresses/#service-hook-ip-addresses
   github: ['192.30.252.0/22', '85.199.108.0/22'],
-
-  // source: https://gitlab.com/gitlab-com/infrastructure/issues/434
-  // gitlab: []
 }
 
 function getCheckIp(provider) {

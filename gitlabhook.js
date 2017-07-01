@@ -17,45 +17,6 @@ var Tmp = require('temp'); Tmp.track();
 var Util = require('util');
 var extractProvider = require('./extractProvider');
 
-var securityCheckers = {
-  bitbucket: function(headers, config) {
-    return { success: true };
-  },
-
-  gitlab: function(headers, config) {
-    if(config.secretToken === undefined && headers['x-gitlab-token'] === undefined) {
-      return { success: true };
-    }
-    if(config.secretToken === undefined && headers['x-gitlab-token'] !== undefined) {
-      return {
-        success: false,
-        reason: 'Secret token set in GitLab but not expected'
-      }
-    }
-    else if(config.secretToken !== undefined && headers['x-gitlab-token'] == undefined) {
-      return {
-        success: false,
-        reason: 'Secret token expected but not set in GitLab'
-      }
-    }
-    else {
-      var payload = {
-        success: config.secretToken === headers['x-gitlab-token']
-      };
-      if(! payload.success) {
-        payload.reason = 'Secret token does not match expected value (received: ' +
-          headers['x-gitlab-token'] + ', expected: ' + config.secretToken + ')';
-      }
-      return payload;
-    }
-  },
-
-  github: function(headers, config) {
-    console.log('## headers for GitHub', headers);
-    return { success: true };
-  },
-
-}
 
 var inspect = Util.inspect;
 var isArray = Util.isArray;
@@ -149,11 +110,29 @@ function parse(data) {
     return result;
 }
 
-function reply(statusCode, res) {
+function reply(statusCode, res, strOrObj) {
+  var content;
+  var contentLength = 0;
+  var contentType;
+  if(typeof strOrObj === 'string') {
+    content = strOrObj;
+    contentLength = content.length;
+  }
+  else if(typeof strOrObj === 'object') {
+    content = JSON.stringify(strOrObj);
+    contentLength = content.length;
+    contentType = 'application/json';
+  }
   var headers = {
-    'Content-Length': 0
+    'Content-Length': contentLength
   };
+  if(contentType) {
+    headers['Content-Type'] = contentType;
+  }
   res.writeHead(statusCode, headers);
+  if(content) {
+    res.write(content);
+  }
   res.end();
 }
 
@@ -288,11 +267,11 @@ function serverHandler(req, res) {
   });
   var provider = extractProvider(req);
   var providerConfig = this.allOptions[provider] || {};
-  var securityCheckResult = securityCheckers[provider](req.headers);
+  var securityCheckResult = securityCheck(req, provider, providerConfig);
   console.log('## security check, conf for provider... ok ?', provider, providerConfig, securityCheckResult);
 
-  if(this.secretToken && req.headers['x-gitlab-token'] !== this.secretToken) {
-    return reply(401, res);
+  if(! securityCheckResult.success) {
+    return reply(401, res, securityCheckResult);
   }
   // 405 if the method is wrong
   if (req.method !== 'POST') {
