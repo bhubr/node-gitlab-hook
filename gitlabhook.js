@@ -204,12 +204,6 @@ function executeShellCmds(self, address, data) {
   }
 }
 
-/**
- * Get provider (gitlab, github, bitbucket) from IP address
- */
-function getProvider(ip) {
-
-}
 
 function serverHandler(req, res) {
   var self = this;
@@ -229,6 +223,8 @@ function serverHandler(req, res) {
   } catch(e) {
     return reply(400, res, { error: e.message });
   }
+  console.log('\n### serverHandler start processing [provider:', provider, ']');
+  console.log(req.headers);
 
   req.on('data', function (chunk) {
     if (failed) return;
@@ -253,13 +249,11 @@ function serverHandler(req, res) {
     var securityCheckResult = strategy.securityCheck(req.headers, providerConfig, rawData);
     data = parse(rawData);
 
-    console.log('## security check, conf for provider... ok ?', provider, providerConfig, securityCheckResult);
+    console.log('## security check for provider:', provider, '=> result:', securityCheckResult);
 
     if(! securityCheckResult.success) {
       return reply(401, res, securityCheckResult);
     }
-
-
 
     // **** SPECIFIC **** BEGIN >>>>>>>>>>
 
