@@ -15,46 +15,7 @@ var Path = require('path');
 var Os = require('os');
 var Tmp = require('temp'); Tmp.track();
 var Util = require('util');
-var ipRangeCheck = require("ip-range-check");
-
-// per-provider IPs
-var ipRanges = {
-
-  // source: https://confluence.atlassian.com/bitbucket/what-are-the-bitbucket-cloud-ip-addresses-i-should-use-to-configure-my-corporate-firewall-343343385.html
-  bitbucket: ['104.192.143.192/28', '104.192.143.208/28', '104.192.143.0/24', '34.198.203.127', '34.198.178.64'],
-
-  // source: https://help.github.com/articles/github-s-ip-addresses/#service-hook-ip-addresses
-  github: ['192.30.252.0/22', '85.199.108.0/22'],
-
-  // source: https://gitlab.com/gitlab-com/infrastructure/issues/434
-  // gitlab: []
-}
-
-function getCheckIp(provider) {
-  return function(req) {
-    const ip = req.ip || req.headers['x-real-ip'];
-    console.log('checkIp', req.ip, req.headers['x-real-ip'], '=>', ip, provider);
-    var ipRangesForProvider = ipRanges[provider];
-    console.log('check for provider', provider, ipRangesForProvider)
-    for(var i = 0; i < ipRangesForProvider.length ; i++) {
-      console.log('check ip vs range', ip, range, ipRangeCheck(ip, range));
-      if(ipRangeCheck(ip, range)) {
-        return true;
-      }
-    }
-    console.log(' => NO matches for provider!!', provider);
-    return false;
-  }
-}
-
-var originatorCheckers = {
-  bitbucket: getCheckIp('bitbucket'),
-  github: getCheckIp('github'),
-  gitlab: function(req) {
-    console.log('gitlab orig check', headers);
-    return req.headers['x-gitlab-event'] !== undefined;
-  }
-}
+var extractProvider = require('./extractProvider');
 
 var securityCheckers = {
   bitbucket: function(headers, config) {
@@ -325,18 +286,7 @@ function serverHandler(req, res) {
     }
 
   });
-
-  console.log('### checking originator', Object.keys(originatorCheckers));
-  for(provider in originatorCheckers) {
-    console.log('\n\n  # checking', provider, '=>', originatorCheckers[provider](req));
-    if(originatorCheckers[provider](req)) {
-      console.log('found!! provider:', provider);
-      break;
-    }
-    else {
-      console.log('# orig check failed for provider:', provider);
-    }
-  }
+  var provider = extractProviderFromReq(req);
   var providerConfig = this.allOptions[provider] || {};
   var securityCheckResult = securityCheckers[provider](req.headers);
   console.log('## security check, conf for provider... ok ?', provider, providerConfig, securityCheckResult);
