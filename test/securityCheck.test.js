@@ -127,6 +127,20 @@ describe('all tests', () => {
   });
 
 
+  it('check security with GitHub IP and config, fail 4: passed body arg is not a string', done => {
+    var req = {
+      headers: {
+        'x-real-ip': githubIP,
+        'x-hub-signature': 'sha1=4375ecbfc42d1003ee873b6c73244254992711c7'
+      }
+    };
+    var passed = securityCheck(req, 'github', { secretToken: 'MyWr0ngS3cr3t' }, { foo: 'bar' });
+    assert.isNotOk(passed.success);
+    assert.equal(passed.reason, 'body parameter should be a string');
+    done();
+  });
+
+
   // GitHub OK
   it('check security with GitHub IP and config, ok 1: no token expected nor provided', done => {
     var req = {

@@ -34,7 +34,7 @@ var securityCheckers = {
   },
 
   github: function(headers, config, body) {
-    console.log('## headers for GitHub', headers);
+    // console.log('## headers for GitHub', headers);
     if(typeof body !== 'string') {
       return { success: false, reason: 'body parameter should be a string' }
     };
@@ -73,6 +73,6 @@ var securityCheckers = {
 }
 
 module.exports = function(req, provider, providerConfig, body) {
-  console.log('securityCheck', provider, providerConfig);
+  // console.log('securityCheck', provider, providerConfig);
 	return securityCheckers[provider](req.headers, providerConfig, body);
 }
