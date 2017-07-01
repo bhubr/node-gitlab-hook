@@ -286,7 +286,7 @@ function serverHandler(req, res) {
     }
 
   });
-  var provider = extractProviderFromReq(req);
+  var provider = extractProvider(req);
   var providerConfig = this.allOptions[provider] || {};
   var securityCheckResult = securityCheckers[provider](req.headers);
   console.log('## security check, conf for provider... ok ?', provider, providerConfig, securityCheckResult);
