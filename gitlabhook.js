@@ -48,8 +48,8 @@ function getCheckIp(provider) {
 }
 
 var originatorCheckers = {
-  bitbucket: checkIp('bitbucket'),
-  github: checkIp('github'),
+  bitbucket: getCheckIp('bitbucket'),
+  github: getCheckIp('github'),
   gitlab: function(req) {
     console.log('gitlab orig check', headers);
     return req.headers['x-gitlab-event'] !== undefined;
