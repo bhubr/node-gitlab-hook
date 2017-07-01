@@ -12,17 +12,13 @@ function getCheckIp(provider) {
   return function(req) {
     const ip = req.ip || (req.socket && req.socket.remoteAddress) ||
       (req.socket && req.socket.socket && req.socket.socket.remoteAddress) || req.headers['x-real-ip'];
-    console.log('checkIp', req.ip, req.headers['x-real-ip'], '=>', ip, provider);
     var ipRangesForProvider = ipRanges[provider];
-    console.log('check for provider', provider, ipRangesForProvider)
     for(var i = 0; i < ipRangesForProvider.length ; i++) {
       var range = ipRangesForProvider[i];
-      console.log('check ip vs range', ip, range, ipRangeCheck(ip, range));
       if(ipRangeCheck(ip, range)) {
         return true;
       }
     }
-    console.log(' => NO matches for provider!!', provider);
     return false;
   }
 }
@@ -40,14 +36,11 @@ var originatorCheckers = {
 
 function extractProvider(req) {
   
-  console.log('### checking originator', req, Object.keys(originatorCheckers));
+  console.log('### checking originator', Object.keys(originatorCheckers));
   for(provider in originatorCheckers) {
     console.log('\n\n  # checking', provider, '=>', originatorCheckers[provider](req));
     if(originatorCheckers[provider](req)) {
       return provider;
-    }
-    else {
-      console.log('# orig check failed for provider:', provider);
     }
   }
 }
