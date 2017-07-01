@@ -16,7 +16,7 @@ var Os = require('os');
 var Tmp = require('temp'); Tmp.track();
 var Util = require('util');
 var extractProvider = require('./extractProvider');
-
+var securityCheck = require('./securityCheck');
 
 var inspect = Util.inspect;
 var isArray = Util.isArray;
