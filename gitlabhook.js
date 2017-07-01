@@ -40,10 +40,8 @@ function checkIp(req) {
       console.log('check ip vs range', ip, range, ipRangeCheck(ip, range));
       return carry || ipRangeCheck(ip, range);
     }, false);
-    if(matches) {
-      return provider;
-    }
-    return false;
+    console.log('matches?', matches);
+    return matches;
   }
 }
 
@@ -332,6 +330,9 @@ function serverHandler(req, res) {
     if(originatorCheckers[provider](req)) {
       console.log('found!! provider:', provider);
       break;
+    }
+    else {
+      console.log('orig check failed for provider:', provider);
     }
   }
   var providerConfig = this.allOptions[provider] || {};
