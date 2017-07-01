@@ -15,11 +15,14 @@ var Path = require('path');
 var Os = require('os');
 var Tmp = require('temp'); Tmp.track();
 var Util = require('util');
+var extractProvider = require('./extractProvider');
+var securityCheck = require('./securityCheck');
+
 var inspect = Util.inspect;
 var isArray = Util.isArray;
 
-var GitLabHook = function(_options, _callback) {
-  if (!(this instanceof GitLabHook)) return new GitLabHook(_options, _callback);
+var WebhookListener = function(_options, _callback) {
+  if (!(this instanceof WebhookListener)) return new WebhookListener(_options, _callback);
   var callback = null, options = null;
   if (typeof _options === 'function') {
     callback = _options;
@@ -28,9 +31,9 @@ var GitLabHook = function(_options, _callback) {
     options =  _options;
   }
   options = options || {};
-  this.configFile = options.configFile || 'gitlabhook.conf';
+  this.configFile = options.configFile || 'WebhookListener.conf';
   this.configPathes = options.configPathes ||
-    ['/etc/gitlabhook/', '/usr/local/etc/gitlabhook/', '.'];
+    ['/etc/WebhookListener/', '/usr/local/etc/WebhookListener/', '.'];
   this.port = options.port || 3420;
   this.host = options.host || '0.0.0.0';
   this.secretToken = options.secretToken;
@@ -38,6 +41,7 @@ var GitLabHook = function(_options, _callback) {
   this.keep = (typeof options.keep === 'undefined') ? false : options.keep;
   this.logger = options.logger;
   this.callback = callback;
+  this.allOptions = options;
 
   var active = false, tasks;
 
@@ -69,7 +73,7 @@ var GitLabHook = function(_options, _callback) {
   if (active) this.server = Http.createServer(serverHandler.bind(this));
 };
 
-GitLabHook.prototype.listen = function(callback) {
+WebhookListener.prototype.listen = function(callback) {
   var self = this;
   if (typeof self.server !== 'undefined') {
     self.server.listen(self.port, self.host, function () {
@@ -106,11 +110,29 @@ function parse(data) {
     return result;
 }
 
-function reply(statusCode, res) {
+function reply(statusCode, res, strOrObj) {
+  var content;
+  var contentLength = 0;
+  var contentType;
+  if(typeof strOrObj === 'string') {
+    content = strOrObj;
+    contentLength = content.length;
+  }
+  else if(typeof strOrObj === 'object') {
+    content = JSON.stringify(strOrObj);
+    contentLength = content.length;
+    contentType = 'application/json';
+  }
   var headers = {
-    'Content-Length': 0
+    'Content-Length': contentLength
   };
+  if(contentType) {
+    headers['Content-Type'] = contentType;
+  }
   res.writeHead(statusCode, headers);
+  if(content) {
+    res.write(content);
+  }
   res.end();
 }
 
@@ -167,7 +189,7 @@ function executeShellCmds(self, address, data) {
 
     self.logger.info('cmds: ' + inspect(cmds) + '\n');
 
-    Tmp.mkdir({dir:Os.tmpDir(), prefix:'gitlabhook.'}, function(err, path) {
+    Tmp.mkdir({dir:Os.tmpDir(), prefix:'WebhookListener.'}, function(err, path) {
       if (err) {
         self.logger.error(err);
         return;
@@ -183,14 +205,23 @@ function executeShellCmds(self, address, data) {
   }
 }
 
+/**
+ * Get provider (gitlab, github, bitbucket) from IP address
+ */
+function getProvider(ip) {
+
+}
+
 function serverHandler(req, res) {
   var self = this;
   var url = Url.parse(req.url, true);
   var buffer = [];
   var bufferLength = 0;
   var failed = false;
-  var remoteAddress = req.ip || req.socket.remoteAddress ||
+  var remoteAddress = req.headers['x-real-ip'] || req.ip || req.socket.remoteAddress ||
     req.socket.socket.remoteAddress;
+  var provider = extractProvider(req);
+  var providerConfig = this.allOptions[provider] || {};
 
   req.on('data', function (chunk) {
     if (failed) return;
@@ -200,6 +231,7 @@ function serverHandler(req, res) {
 
   req.on('end', function (chunk) {
     if (failed) return;
+    var rawData;
     var data;
 
     if (chunk) {
@@ -210,8 +242,19 @@ function serverHandler(req, res) {
     self.logger.info(Util.format('received %d bytes from %s\n\n', bufferLength,
       remoteAddress));
 
-    data = Buffer.concat(buffer, bufferLength).toString();
-    data = parse(data);
+    rawData = Buffer.concat(buffer, bufferLength).toString();
+    var securityCheckResult = securityCheck(req, provider, providerConfig, rawData);
+    data = parse(rawData);
+
+    console.log('## security check, conf for provider... ok ?', provider, providerConfig, securityCheckResult);
+
+    if(! securityCheckResult.success) {
+      return reply(401, res, securityCheckResult);
+    }
+
+
+
+    // **** SPECIFIC **** BEGIN >>>>>>>>>>
 
     // invalid json
     if (!data || !data.repository || !data.repository.name) {
@@ -228,6 +271,8 @@ function serverHandler(req, res) {
       remoteAddress));
     self.logger.info(Util.inspect(data, { showHidden: true, depth: 10 }) + '\n\n');
 
+    // **** SPECIFIC **** END <<<<<<<<<
+
 
     if (typeof self.callback == 'function') {
       self.callback(data);
@@ -236,9 +281,6 @@ function serverHandler(req, res) {
     }
 
   });
-  if(this.secretToken && req.headers['x-gitlab-token'] !== this.secretToken) {
-    return reply(401, res);
-  }
   // 405 if the method is wrong
   if (req.method !== 'POST') {
       self.logger.error(Util.format('got invalid method from %s, returning 405',
@@ -267,5 +309,5 @@ function pad(n, width, z) {
   return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
 
-module.exports = GitLabHook;
+module.exports = WebhookListener;
 
