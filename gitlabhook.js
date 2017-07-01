@@ -1,7 +1,10 @@
 
 /*
-  Rolf Niepraschk (Rolf.Niepraschk@gmx.de)
-  Inspired by https://github.com/nlf/node-github-hook
+  Generic webhook handler for BitBucket, GitHub, GitLab
+  Benoît Hubert
+
+  Inspired by https://github.com/rolfn/node-gitlab-hook  (Rolf Niepraschk)
+  Inspired by https://github.com/nlf/node-github-hook    (Nathan LaFreniere)
 */
 
 var Http = require('http');
