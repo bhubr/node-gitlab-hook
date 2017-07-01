@@ -220,6 +220,8 @@ function serverHandler(req, res) {
   var failed = false;
   var remoteAddress = req.headers['x-real-ip'] || req.ip || req.socket.remoteAddress ||
     req.socket.socket.remoteAddress;
+  var provider = extractProvider(req);
+  var providerConfig = this.allOptions[provider] || {};
 
   req.on('data', function (chunk) {
     if (failed) return;
@@ -229,6 +231,7 @@ function serverHandler(req, res) {
 
   req.on('end', function (chunk) {
     if (failed) return;
+    var rawData;
     var data;
 
     if (chunk) {
@@ -239,8 +242,19 @@ function serverHandler(req, res) {
     self.logger.info(Util.format('received %d bytes from %s\n\n', bufferLength,
       remoteAddress));
 
-    data = Buffer.concat(buffer, bufferLength).toString();
-    data = parse(data);
+    rawData = Buffer.concat(buffer, bufferLength).toString();
+    var securityCheckResult = securityCheck(req, provider, providerConfig, rawData);
+    data = parse(rawData);
+
+    console.log('## security check, conf for provider... ok ?', provider, providerConfig, securityCheckResult);
+
+    if(! securityCheckResult.success) {
+      return reply(401, res, securityCheckResult);
+    }
+
+
+
+    // **** SPECIFIC **** BEGIN >>>>>>>>>>
 
     // invalid json
     if (!data || !data.repository || !data.repository.name) {
@@ -257,6 +271,8 @@ function serverHandler(req, res) {
       remoteAddress));
     self.logger.info(Util.inspect(data, { showHidden: true, depth: 10 }) + '\n\n');
 
+    // **** SPECIFIC **** END <<<<<<<<<
+
 
     if (typeof self.callback == 'function') {
       self.callback(data);
@@ -265,14 +281,6 @@ function serverHandler(req, res) {
     }
 
   });
-  var provider = extractProvider(req);
-  var providerConfig = this.allOptions[provider] || {};
-  var securityCheckResult = securityCheck(req, provider, providerConfig);
-  console.log('## security check, conf for provider... ok ?', provider, providerConfig, securityCheckResult);
-
-  if(! securityCheckResult.success) {
-    return reply(401, res, securityCheckResult);
-  }
   // 405 if the method is wrong
   if (req.method !== 'POST') {
       self.logger.error(Util.format('got invalid method from %s, returning 405',
