@@ -37,7 +37,7 @@ function checkIp(req) {
     console.log(ipRanges[provider]);
     var ipRangesForProvider = ipRanges[provider];
     var matches = ipRangesForProvider.reduce(function(carry, range) {
-      console.log('check ip vs range vs ip', ip, range, ipRangeCheck(req.ip, range));
+      console.log('check ip vs range', ip, range, ipRangeCheck(ip, range));
       return carry || ipRangeCheck(ip, range);
     }, false);
     if(matches) {
