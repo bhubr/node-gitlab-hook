@@ -10,8 +10,8 @@ var ipRanges = {
 
 function getCheckIp(provider) {
   return function(req) {
-    const ip = req.ip || (req.socket && req.socket.remoteAddress) ||
-      (req.socket && req.socket.socket && req.socket.socket.remoteAddress) || req.headers['x-real-ip'];
+    const ip = req.headers['x-real-ip'] || req.ip || (req.socket && req.socket.remoteAddress) ||
+      (req.socket && req.socket.socket && req.socket.socket.remoteAddress);
     var ipRangesForProvider = ipRanges[provider];
     for(var i = 0; i < ipRangesForProvider.length ; i++) {
       var range = ipRangesForProvider[i];

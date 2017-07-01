@@ -218,7 +218,7 @@ function serverHandler(req, res) {
   var buffer = [];
   var bufferLength = 0;
   var failed = false;
-  var remoteAddress = req.ip || req.socket.remoteAddress ||
+  var remoteAddress = req.headers['x-real-ip'] || req.ip || req.socket.remoteAddress ||
     req.socket.socket.remoteAddress;
 
   req.on('data', function (chunk) {
