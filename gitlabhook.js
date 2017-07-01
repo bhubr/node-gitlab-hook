@@ -15,8 +15,7 @@ var Path = require('path');
 var Os = require('os');
 var Tmp = require('temp'); Tmp.track();
 var Util = require('util');
-var extractProvider = require('./extractProvider');
-var securityCheck = require('./securityCheck');
+var strategies = require('./lib/strategies');
 
 var inspect = Util.inspect;
 var isArray = Util.isArray;
@@ -220,8 +219,16 @@ function serverHandler(req, res) {
   var failed = false;
   var remoteAddress = req.headers['x-real-ip'] || req.ip || req.socket.remoteAddress ||
     req.socket.socket.remoteAddress;
-  var provider = extractProvider(req);
-  var providerConfig = this.allOptions[provider] || {};
+  var provider;
+  var providerConfig;
+  var strategy;
+  try {
+    provider = strategies.extract(req);
+    strategy = strategies.factory(provider);
+    providerConfig = this.allOptions[provider] || {};
+  } catch(e) {
+    return reply(400, res, { error: e.message });
+  }
 
   req.on('data', function (chunk) {
     if (failed) return;
@@ -243,7 +250,7 @@ function serverHandler(req, res) {
       remoteAddress));
 
     rawData = Buffer.concat(buffer, bufferLength).toString();
-    var securityCheckResult = securityCheck(req, provider, providerConfig, rawData);
+    var securityCheckResult = strategy.securityCheck(req.headers, providerConfig, rawData);
     data = parse(rawData);
 
     console.log('## security check, conf for provider... ok ?', provider, providerConfig, securityCheckResult);
