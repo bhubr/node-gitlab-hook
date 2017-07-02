@@ -15,8 +15,7 @@ var Path = require('path');
 var Os = require('os');
 var Tmp = require('temp'); Tmp.track();
 var Util = require('util');
-var extractProvider = require('./extractProvider');
-var securityCheck = require('./securityCheck');
+var strategies = require('./lib/strategies');
 
 var inspect = Util.inspect;
 var isArray = Util.isArray;
@@ -205,12 +204,6 @@ function executeShellCmds(self, address, data) {
   }
 }
 
-/**
- * Get provider (gitlab, github, bitbucket) from IP address
- */
-function getProvider(ip) {
-
-}
 
 function serverHandler(req, res) {
   var self = this;
@@ -220,8 +213,18 @@ function serverHandler(req, res) {
   var failed = false;
   var remoteAddress = req.headers['x-real-ip'] || req.ip || req.socket.remoteAddress ||
     req.socket.socket.remoteAddress;
-  var provider = extractProvider(req);
-  var providerConfig = this.allOptions[provider] || {};
+  var provider;
+  var providerConfig;
+  var strategy;
+  try {
+    provider = strategies.extract(req);
+    strategy = strategies.factory(provider, req.headers);
+    providerConfig = this.allOptions[provider] || {};
+  } catch(e) {
+    return reply(400, res, { error: e.message });
+  }
+  console.log('\n### serverHandler start processing [provider:', provider, ']');
+  console.log(req.headers);
 
   req.on('data', function (chunk) {
     if (failed) return;
@@ -243,16 +246,15 @@ function serverHandler(req, res) {
       remoteAddress));
 
     rawData = Buffer.concat(buffer, bufferLength).toString();
-    var securityCheckResult = securityCheck(req, provider, providerConfig, rawData);
+    var securityCheckResult = strategy.securityCheck(providerConfig, rawData);
     data = parse(rawData);
+    strategy.setData(data);
 
-    console.log('## security check, conf for provider... ok ?', provider, providerConfig, securityCheckResult);
+    console.log('## security check for provider:', provider, '=> result:', securityCheckResult);
 
     if(! securityCheckResult.success) {
       return reply(401, res, securityCheckResult);
     }
-
-
 
     // **** SPECIFIC **** BEGIN >>>>>>>>>>
 
@@ -275,7 +277,11 @@ function serverHandler(req, res) {
 
 
     if (typeof self.callback == 'function') {
-      self.callback(data);
+      self.callback({
+        data: data,
+        provider: provider,
+        eventType: strategy.getEventType()
+      });
     } else {
       executeShellCmds(self, remoteAddress, data);
     }

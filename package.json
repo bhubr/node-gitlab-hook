@@ -1,6 +1,6 @@
 {
-  "name": "gitlabhook",
-  "version": "0.0.16",
+  "name": "code-hosting-webhooks",
+  "version": "0.0.18",
   "description": "This is an easy to use nodeJS based web hook for GitLab.",
   "main": "gitlabhook.js",
   "dependencies": {
@@ -13,20 +13,25 @@
     "request": "^2.81.0",
     "request-promise": "^4.2.1"
   },
+  "files": [
+    "index.js",
+    "lib"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/rolfn/node-gitlab-hook.git"
+    "url": "https://github.com/bhubr/node-github-gitlab-bitbucket-hook.git"
   },
   "keywords": [
     "GitLab",
     "webhook"
   ],
-  "author": "Rolf Niepraschk <Rolf.Niepraschk@gmx.de>",
+  "author": "Benoît Hubert <benoithubert@gmail.com>",
+  "contributors": ["Rolf Niepraschk <Rolf.Niepraschk@gmx.de>"],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/rolfn/node-gitlab-hook/issues"
+    "url": "https://github.com/bhubr/node-github-gitlab-bitbucket-hook/issues"
   }
 }

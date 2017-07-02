@@ -1,4 +1,4 @@
-const securityCheck   = require('../securityCheck');
+const strategies      = require('../lib/strategies');
 const fs              = require('fs');    
 const chai            = require('chai');
 const assert          = chai.assert;
@@ -15,7 +15,9 @@ describe('all tests', () => {
         'x-real-ip': bitbucketIP
       }
     };
-    var passed = securityCheck(req, 'bitbucket', {});
+    var provider = strategies.extract(req);
+    var strategy = strategies.factory(provider, req.headers);
+    var passed = strategy.securityCheck({});
     assert.ok(passed.success);
     assert.equal(passed.reason, undefined);
     done();
@@ -29,7 +31,9 @@ describe('all tests', () => {
         'x-gitlab-token': 'MyStr0ngS3cr3t'
       }
     };
-    var passed = securityCheck(req, 'gitlab', {});
+    var provider = strategies.extract(req);
+    var strategy = strategies.factory(provider, req.headers);
+    var passed = strategy.securityCheck({});
     assert.isNotOk(passed.success);
     assert.equal(passed.reason, 'Secret token set in GitLab but not expected');
     done();
@@ -41,7 +45,9 @@ describe('all tests', () => {
         'x-gitlab-event': 'Push Hook'
       }
     };
-    var passed = securityCheck(req, 'gitlab', { secretToken: 'MyStr0ngS3cr3t' });
+    var provider = strategies.extract(req);
+    var strategy = strategies.factory(provider, req.headers);
+    var passed = strategy.securityCheck({ secretToken: 'MyStr0ngS3cr3t' });
     assert.isNotOk(passed.success);
     assert.equal(passed.reason, 'Secret token expected but not set in GitLab');
     done();
@@ -54,7 +60,9 @@ describe('all tests', () => {
         'x-gitlab-token': 'MyProvidedS3cr3t'
       }
     };
-    var passed = securityCheck(req, 'gitlab', { secretToken: 'MyExpectedS3cr3t' });
+    var provider = strategies.extract(req);
+    var strategy = strategies.factory(provider, req.headers);
+    var passed = strategy.securityCheck({ secretToken: 'MyExpectedS3cr3t' });
     assert.isNotOk(passed.success);
     assert.equal(passed.reason, 'Secret token does not match expected value (received: MyProvidedS3cr3t, expected: MyExpectedS3cr3t)');
     done();
@@ -67,7 +75,9 @@ describe('all tests', () => {
         'x-gitlab-event': 'Push Hook'
       }
     };
-    var passed = securityCheck(req, 'gitlab', {});
+    var provider = strategies.extract(req);
+    var strategy = strategies.factory(provider, req.headers);
+    var passed = strategy.securityCheck({});
     assert.ok(passed.success);
     assert.equal(passed.reason, undefined);
     done();
@@ -80,7 +90,9 @@ describe('all tests', () => {
         'x-gitlab-token': 'MyStr0ngS3cr3t'
       }
     };
-    var passed = securityCheck(req, 'gitlab', { secretToken: 'MyStr0ngS3cr3t' });
+    var provider = strategies.extract(req);
+    var strategy = strategies.factory(provider, req.headers);
+    var passed = strategy.securityCheck({ secretToken: 'MyStr0ngS3cr3t' });
     assert.ok(passed.success);
     assert.equal(passed.reason, undefined);
     done();
@@ -95,7 +107,9 @@ describe('all tests', () => {
         'x-hub-signature': 'sha1=4375ecbfc42d1003ee873b6c73244254992711c7'
       }
     };
-    var passed = securityCheck(req, 'github', {}, '');
+    var provider = strategies.extract(req);
+    var strategy = strategies.factory(provider, req.headers);
+    var passed = strategy.securityCheck({}, '');
     assert.isNotOk(passed.success);
     assert.equal(passed.reason, 'Secret token set in GitHub but not expected');
     done();
@@ -107,7 +121,9 @@ describe('all tests', () => {
         'x-real-ip': githubIP
       }
     };
-    var passed = securityCheck(req, 'github', { secretToken: 'MyStr0ngS3cr3t' }, '');
+    var provider = strategies.extract(req);
+    var strategy = strategies.factory(provider, req.headers);
+    var passed = strategy.securityCheck({ secretToken: 'MyStr0ngS3cr3t' }, '');
     assert.isNotOk(passed.success);
     assert.equal(passed.reason, 'Secret token expected but not set in GitHub');
     done();
@@ -120,7 +136,9 @@ describe('all tests', () => {
         'x-hub-signature': 'sha1=4375ecbfc42d1003ee873b6c73244254992711c7'
       }
     };
-    var passed = securityCheck(req, 'github', { secretToken: 'MyWr0ngS3cr3t' }, '');
+    var provider = strategies.extract(req);
+    var strategy = strategies.factory(provider, req.headers);
+    var passed = strategy.securityCheck({ secretToken: 'MyWr0ngS3cr3t' }, '');
     assert.isNotOk(passed.success);
     assert.equal(passed.reason, "Signatures don't match (received: sha1=4375ecbfc42d1003ee873b6c73244254992711c7, expected: sha1=b8415223675d3f0189fbb36fa637a32a971482e1)");
     done();
@@ -134,7 +152,9 @@ describe('all tests', () => {
         'x-hub-signature': 'sha1=4375ecbfc42d1003ee873b6c73244254992711c7'
       }
     };
-    var passed = securityCheck(req, 'github', { secretToken: 'MyWr0ngS3cr3t' }, { foo: 'bar' });
+    var provider = strategies.extract(req);
+    var strategy = strategies.factory(provider, req.headers);
+    var passed = strategy.securityCheck({ secretToken: 'MyWr0ngS3cr3t' }, { foo: 'bar' });
     assert.isNotOk(passed.success);
     assert.equal(passed.reason, 'body parameter should be a string');
     done();
@@ -148,7 +168,9 @@ describe('all tests', () => {
         'x-real-ip': githubIP
       }
     };
-    var passed = securityCheck(req, 'github', {}, '');
+    var provider = strategies.extract(req);
+    var strategy = strategies.factory(provider, req.headers);
+    var passed = strategy.securityCheck({}, '');
     assert.ok(passed.success);
     assert.equal(passed.reason, undefined);
     done();
@@ -162,8 +184,9 @@ describe('all tests', () => {
         'x-hub-signature': 'sha1=4375ecbfc42d1003ee873b6c73244254992711c7'
       }
     };
-
-    var passed = securityCheck(req, 'github', { secretToken: 'MyStr0ngS3cr3t' }, '{"foo":"bar"}');
+    var provider = strategies.extract(req);
+    var strategy = strategies.factory(provider, req.headers);
+    var passed = strategy.securityCheck({ secretToken: 'MyStr0ngS3cr3t' }, '{"foo":"bar"}');
     assert.ok(passed.success);
     assert.equal(passed.reason, undefined);
     done();
