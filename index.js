@@ -280,7 +280,7 @@ function serverHandler(req, res) {
       self.callback({
         data: data,
         provider: provider,
-        eventType: strategy.getEventType();
+        eventType: strategy.getEventType()
       });
     } else {
       executeShellCmds(self, remoteAddress, data);
