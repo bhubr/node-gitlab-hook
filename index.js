@@ -138,6 +138,7 @@ function reply(statusCode, res, strOrObj) {
 function executeShellCmds(self, address, data) {
   var repo = data.repository.name;
   var lastCommit = data.commits ? data.commits[data.commits.length-1] : null;
+  console.log('executeShellCmds', data.repository, data.commits, lastCommit);
   var map = {
     '%r': repo,
     '%k': data.object_kind,
@@ -183,6 +184,7 @@ function executeShellCmds(self, address, data) {
   }
 
   var cmds = getCmds(self.tasks, map, repo);
+  console.log('## cmds', cmds);
 
   if (cmds.length > 0) {
 
