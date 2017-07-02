@@ -31,7 +31,7 @@ var WebhookListener = function(_options, _callback) {
   }
   options = options || {};
   this.configFile = options.configFile || 'webhook.conf';
-  this.configPathes = options.configPathes || ['.'];
+  this.configPathes = options.configPathes || ['', '.'];
   this.port = options.port || 3420;
   this.host = options.host || '0.0.0.0';
   this.secretToken = options.secretToken;
