@@ -223,7 +223,7 @@ function serverHandler(req, res) {
   } catch(e) {
     return reply(400, res, { error: e.message });
   }
-  console.log('\n### serverHandler start processing [provider:', provider, ']');
+  console.log('\n### serverHandler start processing [provider: ' + provider + ']');
   console.log(req.headers);
 
   req.on('data', function (chunk) {
@@ -260,6 +260,8 @@ function serverHandler(req, res) {
 
     // invalid json
     if (!data || !data.repository || !data.repository.name) {
+      console.log('!!!! INVALID JSON, missing data.repository or data.repository.name');
+
        self.logger.error(Util.format('received invalid data from %s, returning 400\n\n',
          remoteAddress));
       return reply(400, res);
