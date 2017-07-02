@@ -246,8 +246,9 @@ function serverHandler(req, res) {
       remoteAddress));
 
     rawData = Buffer.concat(buffer, bufferLength).toString();
-    var securityCheckResult = strategy.securityCheck(req.headers, providerConfig, rawData);
+    var securityCheckResult = strategy.securityCheck(providerConfig, rawData);
     data = parse(rawData);
+    strategy.setData(data);
 
     console.log('## security check for provider:', provider, '=> result:', securityCheckResult);
 
@@ -276,7 +277,11 @@ function serverHandler(req, res) {
 
 
     if (typeof self.callback == 'function') {
-      self.callback(data);
+      self.callback({
+        data: data,
+        provider: provider,
+        eventType: strategy.getEventType();
+      });
     } else {
       executeShellCmds(self, remoteAddress, data);
     }
