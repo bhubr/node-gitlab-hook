@@ -1,4 +1,6 @@
-# node-gitlab-hook
+# node-github-gitlab-bitbucket-hook
+
+**Note:** This is a forked project that I'm heavily modifying. For the original look up [here](https://github.com/rolfn/node-gitlab-hook).
 
 This is an easy to use nodeJS based web hook for GitLab.
 
