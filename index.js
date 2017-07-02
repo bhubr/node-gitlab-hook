@@ -218,7 +218,7 @@ function serverHandler(req, res) {
   var strategy;
   try {
     provider = strategies.extract(req);
-    strategy = strategies.factory(provider);
+    strategy = strategies.factory(provider, req.headers);
     providerConfig = this.allOptions[provider] || {};
   } catch(e) {
     return reply(400, res, { error: e.message });
