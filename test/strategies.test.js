@@ -10,7 +10,6 @@ var bitbucketIP = '104.192.143.193';
 
 describe('all tests', () => {
 
-
   it('check originator with GitHub IP', done => {
     var req = {
       headers: {
