@@ -1,19 +1,22 @@
 # node-gitlab-hook
 
-This is an easy to use nodeJS based web hook for GitLab.
+A node.js webhook listener for GitHub, GitLab and BitBucket.
+
+## Disclaimer. Read this first!!
+This package builds on [Rolf Niepraschk's node-gitlab-hook](https://github.com/rolfn/node-gitlab-hook). **However, it works quite differently.** Part of the doc below is obsolete, it will be updated in due time.
 
 ## To Install:
 ```
-npm install gitlabhook
+npm install git-hosting-webhooks
 ```
 
 ## To Use:
 
 ```javascript
-var gitlabhook = require('gitlabhook');
-var gitlab = gitlabhook({/* options */} [, callback]);
+var webhooks = require('git-hosting-webhooks');
+var listener = webhooks({/* options */} [, callback]);
 
-gitlab.listen();
+listener.listen();
 ```
 
 Configure a WebHook URL to whereever the server is listening.

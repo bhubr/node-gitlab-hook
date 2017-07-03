@@ -67,7 +67,7 @@ var WebhookListener = function(_options, _callback) {
 
   this.logger = this.logger || { info: function(){}, error: function(){} };
 
-  this.logger.info('self: ' + inspect(this) + '\n');
+  // this.logger.info('self: ' + inspect(this) + '\n');
 
   if (active) this.server = Http.createServer(serverHandler.bind(this));
 };
