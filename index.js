@@ -293,7 +293,7 @@ function serverHandler(req, res) {
       console.log('execute callback');
       self.callback(Object.assign({
         provider: provider,
-        payload: rawData,
+        payload: data,
       }, processed));
     } else {
       console.log('no callback, execute shell cmds');
