@@ -53,7 +53,7 @@ describe('BitBucketStrategy tests', () => {
       'x-event-key': 'issue:updated'
     };
     const strategy = new BitBucketStrategy(headers);
-    const payload = tools.getSamplePayload('bitbucket', 'issue-edited');
+    const payload = tools.getSamplePayload('bitbucket', 'issue-updated');
     strategy.setData(payload);
     const eventData = strategy.getEventData();
     const repoUrl = 'https://bitbucket.org/bhubr/test-webhook';

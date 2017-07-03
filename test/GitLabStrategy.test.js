@@ -58,7 +58,7 @@ describe('GitLabStrategy tests', () => {
       'x-gitlab-event': 'Issue Hook'
     };
     const strategy = new GitLabStrategy(headers);
-    const payload = tools.getSamplePayload('gitlab', 'issue-edited');
+    const payload = tools.getSamplePayload('gitlab', 'issue-updated');
     strategy.setData(payload);
     const eventData = strategy.getEventData();
     const repoUrl = 'https://gitlab.com/goodkarma/foobar';

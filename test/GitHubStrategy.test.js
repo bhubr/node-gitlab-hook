@@ -62,7 +62,7 @@ describe('GitHubStrategy tests', () => {
       'x-github-event': 'issues'
     };
     const strategy = new GitHubStrategy(headers);
-    const payload = tools.getSamplePayload('github', 'issue-edited');
+    const payload = tools.getSamplePayload('github', 'issue-updated');
     strategy.setData(payload);
     const eventData = strategy.getEventData();
     const repoUrl = 'https://github.com/bhubr/test-webhook';
