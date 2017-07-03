@@ -16,6 +16,7 @@ var Os = require('os');
 var Tmp = require('temp'); Tmp.track();
 var Util = require('util');
 var strategies = require('./lib/strategies');
+var dumpJsonPayload = require('./dumpJsonPayload');
 
 var inspect = Util.inspect;
 var isArray = Util.isArray;
@@ -247,6 +248,7 @@ function serverHandler(req, res) {
       remoteAddress));
 
     rawData = Buffer.concat(buffer, bufferLength).toString();
+    dumpJsonPayload(provider, rawData);
     var securityCheckResult = strategy.securityCheck(providerConfig, rawData);
     data = parse(rawData);
     strategy.setData(data);
