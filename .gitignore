@@ -2,8 +2,6 @@
 node_modules/
 tmp/
 package/
-NOTIZEN
 Makefile.spec
-
-
-
+pm2.config.js
+config.json
