@@ -21,8 +21,10 @@ function getTimestamp() {
   return ((new Date()).getTime() / 1000).toString(36);
 }
 
-function pushHandlerCallback(error, stdout, stderr) {
-  console.log('pushHandlerCallback (err?)', error, '\nstdout\n', stdout, '\nstderr\n', stderr);
+function getPushHandlerCallback(localFolder) {
+  return (error, stdout, stderr) => {
+    console.log('pushHandlerCallback for', localFolder, '\n--- error ---\n', error, '\n--- stdout ---\n', stdout, '\n--- stderr ---\n', stderr);
+  }
 }
 
 function issueHandler(payload) {
@@ -31,19 +33,23 @@ function issueHandler(payload) {
 
 function pushHandler(data) {
   const { repos } = config;
-  const localFolder = repos[data.url];
-  console.log('pushHandler', data, 'local folder', localFolder);
-  if(localFolder === undefined) {
-    console.log('no local folder found, abort handler!');
+  const localInstances = repos[data.url];
+  console.log('pushHandler', data, 'local folder', localInstances);
+  if(localInstances === undefined) {
+    console.log('no local instance array found, abort handler!');
     return;
   }
 
+  localInstances.forEach(instance => {
+    const { localFolder } = instance;
+    const pushHandlerCallback = getPushHandlerCallback(localFolder);
+    const cmd = "cd " + localFolder + " && git pull";
+    exec(cmd, pushHandlerCallback);
+  });
   // if(payload.commits.length === 0) {
   //   console.log('nothing to do');
   //   return;
   // }
-  const cmd = "cd " + localFolder + " && git pull";
-  exec(cmd, pushHandlerCallback);
 
 }
 
