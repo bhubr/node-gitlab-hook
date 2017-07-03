@@ -34,6 +34,10 @@ function getTimestamp() {
   return ((new Date()).getTime() / 1000).toString(36);
 }
 
+function getPayloadFilename(provider) {
+  return payloadsFolder + '/payload-' + provider + '-' + getTimestamp() + '.json';
+}
+
 function getExecCallbacks(label) {
   return {
     error: err => {
@@ -103,7 +107,7 @@ function genericCallback(result) {
   console.log('# genericCallback got provider/event/data/payload', provider, event, data, payload);
 
   // Store payload
-  fs.writeFileSync(payloadsFolder + '/payload-' + provider + '-' + getTimestamp() + '.json', JSON.stringify({ event: event.replace(':', '-'), payload }));
+  fs.writeFileSync(getPayloadFilename(provider), payload);
 
   // Refresh payload index and write it
   const jsons = fs.readdirSync(payloadsFolder);
