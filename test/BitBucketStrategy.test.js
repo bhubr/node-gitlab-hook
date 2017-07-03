@@ -25,6 +25,29 @@ describe('BitBucketStrategy tests', () => {
     done();
   });
 
+  it('extract "issue created" event', done => {
+    const headers = {
+      'x-event-key': 'issue:created'
+    };
+    const strategy = new BitBucketStrategy(headers);
+    const payload = tools.getSamplePayload('bitbucket', 'issue-created');
+    strategy.setData(payload);
+    const eventData = strategy.getEventData();
+    const repoUrl = 'https://bitbucket.org/bhubr/test-webhook';
+    const { event, data } = eventData;
+    const { issue, repository } = data;
+    const issueHtmlUrl = 'https://bitbucket.org/bhubr/test-webhook/issues/2/test-issue';
+    assert.equal(event, 'issue:created', "Event should be 'issue:created'");
+    assert.equal(issue.title, 'Test Issue', "Issue title should be 'Test Issue'");
+    assert.equal(issue.body, '## Try some **Markdown**.\nYay :)', "Issue body should be '## Try some **Markdown**.\nYay :)'");
+    assert.equal(issue.number, 2, "Issue number should be 2");
+    assert.equal(issue.state, 'open', "Issue state should be 'open'");
+    assert.equal(issue.htmlUrl, issueHtmlUrl, "Issue url should be '" + issueHtmlUrl + "'");
+    assert.equal(repository.name, 'test-webhook', "Repo name should be 'test-webhook'");
+    assert.equal(repository.fullName, 'bhubr/test-webhook', "Repo name should be 'bhubr/test-webhook'");
+    assert.equal(repository.url, repoUrl, "Repo url should be '" + repoUrl + "'");
+    done();
+  });
   it('extract "issue edited" event', done => {
     const headers = {
       'x-event-key': 'issue:updated'

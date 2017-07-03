@@ -38,10 +38,35 @@ describe('GitHubStrategy tests', () => {
       'x-github-event': 'issues'
     };
     const strategy = new GitHubStrategy(headers);
+    const payload = tools.getSamplePayload('github', 'issue-created');
+    strategy.setData(payload);
+    const eventData = strategy.getEventData();
+    const repoUrl = 'https://github.com/bhubr/test-webhook';
+    const issueUrl = 'https://github.com/bhubr/test-webhook/issues/2';
+    const { event, data } = eventData;
+    const { issue, repository } = data;
+    assert.equal(event, 'issue:created', "Event should be 'issue:created'");
+    assert.equal(issue.title, 'Test Issue', "Issue title should be 'Test Issue'");
+    assert.equal(issue.body, '## Try some **Markdown**.\nYay :)', "Issue body should be '## Try some **Markdown**.\nYay :)'");
+    assert.equal(issue.number, 2, "Issue number should be 2");
+    assert.equal(issue.state, 'open', "Issue state should be 'open'");
+    assert.equal(issue.htmlUrl, issueUrl, "Issue url should be '" + issueUrl + "'");
+    assert.equal(repository.name, 'test-webhook', "Repo name should be 'test-webhook'");
+    assert.equal(repository.fullName, 'bhubr/test-webhook', "Repo name should be 'bhubr/test-webhook'");
+    assert.equal(repository.url, repoUrl, "Repo url should be '" + repoUrl + "'");
+    done();
+  });
+
+  it('extract "issue edited" event', done => {
+    const headers = {
+      'x-github-event': 'issues'
+    };
+    const strategy = new GitHubStrategy(headers);
     const payload = tools.getSamplePayload('github', 'issue-edited');
     strategy.setData(payload);
     const eventData = strategy.getEventData();
     const repoUrl = 'https://github.com/bhubr/test-webhook';
+    const issueUrl = 'https://github.com/bhubr/test-webhook/issues/1';
     const { event, data } = eventData;
     const { issue, repository } = data;
     assert.equal(event, 'issue:updated', "Event should be 'issue:updated'");
@@ -49,7 +74,7 @@ describe('GitHubStrategy tests', () => {
     assert.equal(issue.body, 'lorem ipsum dolor sucks', "Issue body should be 'lorem ipsum dolor sucks'");
     assert.equal(issue.number, 1, "Issue number should be 1");
     assert.equal(issue.state, 'open', "Issue state should be 'open'");
-    assert.equal(issue.htmlUrl, 'https://github.com/bhubr/test-webhook/issues/1', "Issue url should be 'https://github.com/bhubr/test-webhook/issues/1'");
+    assert.equal(issue.htmlUrl, issueUrl, "Issue url should be '" + issueUrl + "'");
     assert.equal(repository.name, 'test-webhook', "Repo name should be 'test-webhook'");
     assert.equal(repository.fullName, 'bhubr/test-webhook', "Repo name should be 'bhubr/test-webhook'");
     assert.equal(repository.url, repoUrl, "Repo url should be '" + repoUrl + "'");

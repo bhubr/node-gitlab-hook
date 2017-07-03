@@ -85,6 +85,7 @@ function pushHandler(data) {
 }
 
 const handlers = {
+  'issue:created': issueHandler,
   'issue:updated': issueHandler,
   'repo:push': pushHandler
 };
