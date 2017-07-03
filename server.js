@@ -45,7 +45,6 @@ function pushHandler(data) {
     const { localFolder, pm2name } = instance;
     console.log(localFolder, instance);
     const callbacks = getExecCallbacks(localFolder);
-    console.log(callbacks, callbacks.out.toString());
     const pullCmd = "cd " + localFolder + " && git pull";
     console.log('exec cmd:', pullCmd);
     exec(pullCmd)
