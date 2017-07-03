@@ -11,8 +11,9 @@ describe('GitHubStrategy tests', () => {
 
   it('map event name', done => {
     const strategy = new GitHubStrategy(headers);
-    const mappedPush = strategy.mapEventName();
-    assert.equal(mappedPush, 'repo:push', "Mapped event name should be 'repo:push'");
+    const { event, funcName } = strategy.mapAction();
+    assert.equal(event, 'repo:push', "Mapped event name should be 'repo:push'");
+    assert.equal(funcName, 'extractRepoPush', "Extractor function should be 'extractRepoPush'");
     done();
   });
 
