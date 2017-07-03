@@ -16,6 +16,7 @@ var Os = require('os');
 var Tmp = require('temp'); Tmp.track();
 var Util = require('util');
 var strategies = require('./lib/strategies');
+var dumpJsonPayload = require('./dumpJsonPayload');
 
 var inspect = Util.inspect;
 var isArray = Util.isArray;
@@ -247,6 +248,7 @@ function serverHandler(req, res) {
       remoteAddress));
 
     rawData = Buffer.concat(buffer, bufferLength).toString();
+    dumpJsonPayload(provider, rawData);
     var securityCheckResult = strategy.securityCheck(providerConfig, rawData);
     data = parse(rawData);
     strategy.setData(data);
@@ -271,7 +273,6 @@ function serverHandler(req, res) {
 
     // var repo = data.repository.name;
 
-    reply(200, res);
 
     // self.logger.info(Util.format('got event on %s:%s from %s\n\n', repo, data.ref,
     //   remoteAddress));
@@ -286,8 +287,9 @@ function serverHandler(req, res) {
       console.log('strategy process done', processed);
     } catch(e) {
       console.log('abort processing due to error', e, '=> send 500 Internal Error');
-      return reply(500, e.message);
+      return reply(500, res, e.message);
     }
+    reply(200, res);
 
     if (typeof self.callback == 'function') {
       console.log('execute callback');

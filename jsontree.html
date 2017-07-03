@@ -1,0 +1,35 @@
+<html lang="en">
+        <head>
+                <title>json tree example</title>
+                <link href="/assets/css/jsontree.css" rel="stylesheet">
+                <script src="/assets/js/jsontree.min.js"></script>
+                <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+        </head>
+        <body>
+                <ul id="example"></ul>
+                <div id="jsontree"></div>
+        </body>
+        <script>
+        "use strict";
+        $(document).ready(() => {
+                const timestamp = (new Date()).getTime();
+                $.get('/payloads.json?ts=' + timestamp, data => {
+                        console.log(data);
+                        let linkIndex = 0;
+                        data.forEach(file => {
+                                const id = 'link-' + linkIndex++;
+                                const $links = $('<li><a id="' + id + '" href="/payloads/' + file + '">' + file +
+                                  '</a> (<a target="_blank" href="/payloads/' + file + '">JSON: ' + file + '</a>)</li>').appendTo('#example');
+                                $('#' + id).on('click', e => {
+                                        e.preventDefault();
+                                        const href = $(e.target).attr('href');
+                                        $.get(href, json => {
+                                                console.log(json.payload);
+                                                 document.getElementById("jsontree").innerHTML = JSONTree.create(json.payload);
+                                        });
+                                });
+                        });
+                });
+        });
+        </script>
+ </html>
