@@ -85,7 +85,7 @@ function pushHandler(data) {
 }
 
 const handlers = {
-  'issue:edited': issueHandler,
+  'issue:updated': issueHandler,
   'repo:push': pushHandler
 };
 const handlerKeys = Object.keys(handlers);
