@@ -7,7 +7,7 @@ const bitbucketIP = '104.192.143.193';
 
 describe('BitBucketStrategy tests', () => {
 
-  it('check originator with BitBucket IP', done => {
+  it('extract "push to repo" event', done => {
     const headers = {
       'x-real-ip': bitbucketIP,
       'x-event-key': 'repo:push'
