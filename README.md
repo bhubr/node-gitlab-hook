@@ -82,12 +82,3 @@ make rpm
 # License
 
 MIT
-add line 
-add line 
-add line 
-add line 
-add line 
-add line 
-add line 
-add line 
-add line 
