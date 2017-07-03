@@ -2,7 +2,7 @@ const fs = require('fs');
 const hasNodeModule = fs.existsSync(__dirname + '/node_modules/git-hosting-webhooks/index.js');
 const modulePath = hasNodeModule ? 'git-hosting-webhooks' : './index.js';
 const webhooks = require(modulePath);
-const exec = require('node-exec-promise').exec;
+const exec = require('nexecp').exec;
 const jsonFolder = __dirname + '/json';
 const payloadsFolder = jsonFolder + '/payloads';
 
@@ -24,8 +24,7 @@ function getTimestamp() {
 function getExecCallbacks(localFolder) {
   return {
     error: err => { console.log('exec ERROR (' + localFolder + ')', err); },
-    stdout: stdout => { console.log('exec stdout (' + localFolder + ')', stdout); },
-    stderr: stderr => { console.log('exec stderr (' + localFolder + ')', stderr); }
+    out: ({ stderr, stdout }) => { console.log('exec (' + localFolder + ')\nstdout:\n', stdout, '\nstderr:\n', stderr ); }
   };
 }
 
@@ -46,17 +45,17 @@ function pushHandler(data) {
     const { localFolder, pm2name } = instance;
     console.log(localFolder, instance);
     const callbacks = getExecCallbacks(localFolder);
-    console.log(callbacks, callbacks.stdout.toString());
+    console.log(callbacks, callbacks.out.toString());
     const pullCmd = "cd " + localFolder + " && git pull";
     console.log('exec cmd:', pullCmd);
     exec(pullCmd)
-    .then(callbacks.stdout, callbacks.stderr)
+    .then(callbacks.out)
     .catch(callbacks.error)
     .then(() => {
       if(pm2name) {
         console.log('exec', 'pm2 restart ' + pm2name);
         return exec('pm2 restart ' + pm2name)
-        .then(callbacks.stdout, callbacks.stderr)
+        .then(callbacks.out)
         .catch(callbacks.error);
       }
       else {
