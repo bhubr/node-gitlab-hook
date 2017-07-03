@@ -96,6 +96,7 @@ const handlers = {
   'issue:edited': issueHandler,
   'repo:push': pushHandler
 };
+const handlerKeys = Object.keys(handlers);
 
 function genericCallback(result) {
   const { provider, event, data, payload } = result;
@@ -113,8 +114,8 @@ function genericCallback(result) {
   fs.writeFileSync(jsonFolder + '/payloads.json', JSON.stringify(jsons));
 
   // Switch action according to event
-  if(['repo:push', 'issue'].indexOf(event) === -1) {
-    console.log('unhandled event:', event);
+  if(handlerKeys.indexOf(event) === -1) {
+    console.log('## genericCallback ERR: unhandled event "', event + '"');
   }
   else {
     // Pick up appropriate handler and run...
