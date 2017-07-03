@@ -259,7 +259,8 @@ function serverHandler(req, res) {
     // **** SPECIFIC **** BEGIN >>>>>>>>>>
 
     // invalid json
-    if (!data || !data.repository || !data.repository.name) {
+    if (!data) {
+    // if (!data || !data.repository || !data.repository.name) {
       console.log('!!!! INVALID JSON, missing data.repository or data.repository.name');
 
        self.logger.error(Util.format('received invalid data from %s, returning 400\n\n',
@@ -267,23 +268,28 @@ function serverHandler(req, res) {
       return reply(400, res);
     }
 
-    var repo = data.repository.name;
+    // var repo = data.repository.name;
 
     reply(200, res);
 
-    self.logger.info(Util.format('got event on %s:%s from %s\n\n', repo, data.ref,
-      remoteAddress));
-    self.logger.info(Util.inspect(data, { showHidden: true, depth: 10 }) + '\n\n');
+    // self.logger.info(Util.format('got event on %s:%s from %s\n\n', repo, data.ref,
+    //   remoteAddress));
+    // self.logger.info(Util.inspect(data, { showHidden: true, depth: 10 }) + '\n\n');
 
     // **** SPECIFIC **** END <<<<<<<<<
 
+    console.log('strategy process start...');
+    const processed = strategy.getEventData();
+    console.log('strategy process done', processed);
 
     if (typeof self.callback == 'function') {
+      console.log('execute callback');
       self.callback(Object.assign({
         provider: provider,
         payload: rawData,
-      }, strategy.getEventData()));
+      }, processed));
     } else {
+      console.log('no callback, execute shell cmds');
       executeShellCmds(self, remoteAddress, data);
     }
 
