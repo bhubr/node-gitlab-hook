@@ -279,11 +279,10 @@ function serverHandler(req, res) {
 
 
     if (typeof self.callback == 'function') {
-      self.callback({
-        data: data,
+      self.callback(Object.assign({
         provider: provider,
-        eventType: strategy.getEventType()
-      });
+        payload: rawData,
+      }, strategy.getEventData()));
     } else {
       executeShellCmds(self, remoteAddress, data);
     }
