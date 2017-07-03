@@ -286,7 +286,7 @@ function serverHandler(req, res) {
       console.log('strategy process done', processed);
     } catch(e) {
       console.log('abort processing due to error', e, '=> send 500 Internal Error');
-      return reply(500, e.message);
+      return reply(500, res, e.message);
     }
 
     if (typeof self.callback == 'function') {
