@@ -14,6 +14,19 @@ config.logger = {
 
 const listener = webhooks(config, genericCallback);
 
+function extractGitPullOutput(gitPullOutput) {
+  console.log('git pull output', gitPullOutput);
+  const re = /^From (https:\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-]))?\n\s*(\[new branch\]|[0-9a-f]+\.\.[0-9a-f]+)\s+([0-9a-zA-Z\-\_]+)\s+\->\s([0-9a-zA-Z\_\-]+)\/([0-9a-zA-Z\_\-]+)$/gm;
+  const matches = re.exec(gitPullOutput);
+  console.log(matches);
+  return matches ? {
+    repoUrl: matches[1],
+    localBranch: matches[5],
+    remoteName: matches[6],
+    remoteBranch: matches[7]
+  } : matches;
+}
+
 /**
  * Get current timestamp
  */
@@ -21,10 +34,16 @@ function getTimestamp() {
   return ((new Date()).getTime() / 1000).toString(36);
 }
 
-function getExecCallbacks(localFolder) {
+function getExecCallbacks(label) {
   return {
-    error: err => { console.log('exec ERROR (' + localFolder + ')', err); },
-    out: ({ stderr, stdout }) => { console.log('exec (' + localFolder + ')\nstdout:\n', stdout, '\nstderr:\n', stderr ); }
+    error: err => {
+      console.log('exec', label, '=> ERROR:\n', err);
+      throw err;
+    },
+    out: ({ stdout, stderr }) => {
+      console.log('\nexec', label, '=> OK:\n----- stdout -----\n', stdout, '\n----- stderr -----\n', stderr );
+      return { stdout, stderr };
+    }
   };
 }
 
@@ -43,19 +62,22 @@ function pushHandler(data) {
 
   localInstances.forEach(instance => {
     const { localFolder, pm2name } = instance;
-    console.log(localFolder, instance);
-    const callbacks = getExecCallbacks(localFolder);
+    console.log(instance);
     const pullCmd = "cd " + localFolder + " && git pull";
-    console.log('exec cmd:', pullCmd);
+    const pullCallbacks = getExecCallbacks(pullCmd);
     exec(pullCmd)
-    .then(callbacks.out)
-    .catch(callbacks.error)
+    .then(pullCallbacks.out)
+    .catch(pullCallbacks.error)
+    .then(({ stdout, stderr }) => {
+      const pullOutput = extractGitPullOutput(stderr);
+    })
     .then(() => {
       if(pm2name) {
-        console.log('exec', 'pm2 restart ' + pm2name);
-        return exec('pm2 restart ' + pm2name)
-        .then(callbacks.out)
-        .catch(callbacks.error);
+        const pm2Cmd = 'pm2 restart ' + pm2name;
+        const pm2Callbacks = getExecCallbacks(pm2Cmd);
+        return exec(pm2Cmd)
+        .then(pm2Callbacks.out)
+        .catch(pm2Callbacks.error);
       }
       else {
         console.log('no pm2');
