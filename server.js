@@ -115,7 +115,7 @@ function genericCallback(result) {
 
   // Switch action according to event
   if(handlerKeys.indexOf(event) === -1) {
-    console.log('## genericCallback ERR: unhandled event "', event + '"');
+    console.log('## genericCallback ERR: unhandled event "' + event + '"');
   }
   else {
     // Pick up appropriate handler and run...
