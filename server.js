@@ -69,7 +69,7 @@ function pushHandler(data) {
     .then(pullCallbacks.out)
     .catch(pullCallbacks.error)
     .then(({ stdout, stderr }) => {
-      console.log('----- git pull output -----', extractGitPullOutput(stderr));
+      const pullOutput = extractGitPullOutput(stderr);
     })
     .then(() => {
       if(pm2name) {
