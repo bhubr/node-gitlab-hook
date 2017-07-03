@@ -234,8 +234,9 @@ function serverHandler(req, res) {
 
   req.on('end', function (chunk) {
     if (failed) return;
-    var rawData;
-    var data;
+    let rawData;
+    let data;
+    let processed;
 
     if (chunk) {
       buffer.push(chunk);
@@ -280,7 +281,7 @@ function serverHandler(req, res) {
 
     try {
       console.log('strategy process start...');
-      const processed = strategy.getEventData();
+      processed = strategy.getEventData();
       console.log('strategy process done', processed);
     } catch(e) {
       console.log('abort processing due to error', e, '=> send 500 Internal Error');
