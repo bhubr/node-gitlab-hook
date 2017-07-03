@@ -1,8 +1,8 @@
 {
-  "name": "code-hosting-webhooks",
-  "version": "0.0.18",
-  "description": "This is an easy to use nodeJS based web hook for GitLab.",
-  "main": "gitlabhook.js",
+  "name": "git-hosting-webhooks",
+  "version": "0.0.19",
+  "description": "A node.js webhook listener for GitHub, GitLab and BitBucket.",
+  "main": "index.js",
   "dependencies": {
     "ip-range-check": "0.0.2",
     "temp": "^0.8.3"

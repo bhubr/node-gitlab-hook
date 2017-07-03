@@ -1,0 +1,30 @@
+{
+  "port": 3420,
+  "github": {
+    "secretToken": "your-github-secret-token"
+  },
+  "gitlab": {
+    "secretToken": "your-gitlab-secret-token"
+  },
+  "repos": {
+    "https://github.com/username/repo-slug1": [
+      {
+        "localFolder":"/home/user/node/repo-slug1-prod",
+        "gitBranch": "master",
+        "pm2name": "repo-slug1-prod"
+      },
+      {
+        "localFolder":"/home/user/node/repo-slug1-dev",
+        "gitBranch": "{latest}",
+        "pm2name": "repo-slug1-dev"
+      }
+    ],
+    "https://bitbucket.org/username/other-repo-slug1": [
+      {
+        "localFolder":"/home/user/node/other-repo-slug1-prod",
+        "gitBranch": "master",
+        "pm2name": "other-repo-slug1-prod"
+      }
+    ]
+  }
+}
