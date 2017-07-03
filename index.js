@@ -271,7 +271,6 @@ function serverHandler(req, res) {
 
     // var repo = data.repository.name;
 
-    reply(200, res);
 
     // self.logger.info(Util.format('got event on %s:%s from %s\n\n', repo, data.ref,
     //   remoteAddress));
@@ -288,6 +287,7 @@ function serverHandler(req, res) {
       console.log('abort processing due to error', e, '=> send 500 Internal Error');
       return reply(500, res, e.message);
     }
+    reply(200, res);
 
     if (typeof self.callback == 'function') {
       console.log('execute callback');
