@@ -278,9 +278,14 @@ function serverHandler(req, res) {
 
     // **** SPECIFIC **** END <<<<<<<<<
 
-    console.log('strategy process start...');
-    const processed = strategy.getEventData();
-    console.log('strategy process done', processed);
+    try {
+      console.log('strategy process start...');
+      const processed = strategy.getEventData();
+      console.log('strategy process done', processed);
+    } catch(e) {
+      console.log('abort processing due to error', e, '=> send 500 Internal Error');
+      return reply(500, e.message);
+    }
 
     if (typeof self.callback == 'function') {
       console.log('execute callback');
