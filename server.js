@@ -48,13 +48,13 @@ function getExecCallbacks(label) {
 }
 
 function issueHandler(payload) {
-  console.log('issueHandler');
+  console.log('\n\n## issueHandler', payload);
 }
 
 function pushHandler(data) {
   const { repos } = config;
   const localInstances = repos[data.url];
-  console.log('pushHandler', data, 'local instances', localInstances);
+  console.log('\n\n## pushHandler', data, 'local instances', localInstances);
   if(localInstances === undefined) {
     console.log('no local instance array found, abort handler!');
     return;
@@ -93,7 +93,7 @@ function pushHandler(data) {
 }
 
 const handlers = {
-  // issue: issueHandler,
+  'issue:edited': issueHandler,
   'repo:push': pushHandler
 };
 
