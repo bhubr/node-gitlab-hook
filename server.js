@@ -45,7 +45,7 @@ function issueHandler(payload) {
 
 function pushHandler(data) {
   const { repos } = config;
-  const localInstances = repos[data.url];
+  const localInstances = repos[data.repository.url];
   console.log('\n\n## pushHandler', data, 'local instances', localInstances);
   if(localInstances === undefined) {
     console.log('no local instance array found, abort handler!');
