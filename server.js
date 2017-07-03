@@ -46,9 +46,11 @@ function pushHandler(data) {
     const pushHandlerCallback = getPushHandlerCallback(localFolder);
     let cmd = "cd " + localFolder + " && git pull";
     console.log(pushHandlerCallback.toString(), cmd);
+    pushHandlerCallback(null, 'pouet stdout', 'pouet stderr');
     if(pm2name) {
       cmd += ' && pm2 restart ' + pm2name;
     }
+    console.log('exec cmd:', cmd);
     exec(cmd, pushHandlerCallback);
   });
   // if(payload.commits.length === 0) {
