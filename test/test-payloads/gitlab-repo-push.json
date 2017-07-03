@@ -1,0 +1,44 @@
+{
+  "object_kind":"push",
+  "event_name":"push",
+  "before":"0000000000000000000000000000000000000000",
+  "after":"4539145721d3a763bb79f776bcf9884f7a3ca366",
+  "ref":"refs/heads/temp-branch-test-webhook",
+  "checkout_sha":"4539145721d3a763bb79f776bcf9884f7a3ca366",
+  "message":null,
+  "user_id":1145117,
+  "user_name":"BenoÃ®t Hubert",
+  "user_username":"bhubert",
+  "user_email":"benoithubert@gmail.com",
+  "user_avatar":"https://secure.gravatar.com/avatar/ad92ee570800e427e8fd4b099fa29611?s=80&d=identicon",
+  "project_id":1263812,
+  "project":{
+    "name":"foobar",
+    "description":"",
+    "web_url":"https://gitlab.com/goodkarma/foobar",
+    "avatar_url":null,
+    "git_ssh_url":"git@gitlab.com:goodkarma/foobar.git",
+    "git_http_url":"https://gitlab.com/goodkarma/foobar.git",
+    "namespace":"goodkarma",
+    "visibility_level":0,
+    "path_with_namespace":"goodkarma/foobar",
+    "default_branch":"develop",
+    "homepage":"https://gitlab.com/goodkarma/foobar",
+    "url":"git@gitlab.com:goodkarma/foobar.git",
+    "ssh_url":"git@gitlab.com:goodkarma/foobar.git",
+    "http_url":"https://gitlab.com/goodkarma/foobar.git"
+  },
+  "commits":[
+
+  ],
+  "total_commits_count":0,
+  "repository":{
+    "name":"foobar",
+    "url":"git@gitlab.com:goodkarma/foobar.git",
+    "description":"",
+    "homepage":"https://gitlab.com/goodkarma/foobar",
+    "git_http_url":"https://gitlab.com/goodkarma/foobar.git",
+    "git_ssh_url":"git@gitlab.com:goodkarma/foobar.git",
+    "visibility_level":0
+  }
+}
