@@ -29,7 +29,9 @@
     "webhook"
   ],
   "author": "Benoît Hubert <benoithubert@gmail.com>",
-  "contributors": ["Rolf Niepraschk <Rolf.Niepraschk@gmx.de>"],
+  "contributors": [
+    "Rolf Niepraschk <Rolf.Niepraschk@gmx.de>"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/bhubr/node-github-gitlab-bitbucket-hook/issues"

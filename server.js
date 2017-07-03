@@ -41,9 +41,12 @@ function pushHandler(data) {
   }
 
   localInstances.forEach(instance => {
-    const { localFolder } = instance;
+    const { localFolder, pm2name } = instance;
     const pushHandlerCallback = getPushHandlerCallback(localFolder);
-    const cmd = "cd " + localFolder + " && git pull";
+    let cmd = "cd " + localFolder + " && git pull";
+    if(pm2name) {
+      cmd += ' && pm2 restart ' + pm2name;
+    }
     exec(cmd, pushHandlerCallback);
   });
   // if(payload.commits.length === 0) {
