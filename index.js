@@ -281,6 +281,7 @@ function serverHandler(req, res) {
 
     try {
       console.log('strategy process start...');
+      console.log(data);
       processed = strategy.getEventData();
       console.log('strategy process done', processed);
     } catch(e) {
