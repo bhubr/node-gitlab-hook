@@ -34,7 +34,7 @@ function issueHandler(payload) {
 function pushHandler(data) {
   const { repos } = config;
   const localInstances = repos[data.url];
-  console.log('pushHandler', data, 'local folder', localInstances);
+  console.log('pushHandler', data, 'local instances', localInstances);
   if(localInstances === undefined) {
     console.log('no local instance array found, abort handler!');
     return;
@@ -42,8 +42,10 @@ function pushHandler(data) {
 
   localInstances.forEach(instance => {
     const { localFolder, pm2name } = instance;
+    console.log(localFolder, instance);
     const pushHandlerCallback = getPushHandlerCallback(localFolder);
     let cmd = "cd " + localFolder + " && git pull";
+    console.log(pushHandlerCallback.toString(), cmd);
     if(pm2name) {
       cmd += ' && pm2 restart ' + pm2name;
     }
