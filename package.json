@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "ip-range-check": "0.0.2",
+    "node-exec-promise": "^0.1.1",
     "temp": "^0.8.3"
   },
   "devDependencies": {

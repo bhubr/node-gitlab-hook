@@ -2,7 +2,7 @@ const fs = require('fs');
 const hasNodeModule = fs.existsSync(__dirname + '/node_modules/git-hosting-webhooks/index.js');
 const modulePath = hasNodeModule ? 'git-hosting-webhooks' : './index.js';
 const webhooks = require(modulePath);
-const exec = require('child_process').exec;
+const exec = require('node-exec-promise').exec;
 const jsonFolder = __dirname + '/json';
 const payloadsFolder = jsonFolder + '/payloads';
 
@@ -21,10 +21,12 @@ function getTimestamp() {
   return ((new Date()).getTime() / 1000).toString(36);
 }
 
-function getPushHandlerCallback(localFolder) {
-  return (error, stdout, stderr) => {
-    console.log('pushHandlerCallback for', localFolder, '\n--- error ---\n', error, '\n--- stdout ---\n', stdout, '\n--- stderr ---\n', stderr);
-  }
+function getExecCallbacks(localFolder) {
+  return {
+    error: err => { console.log('exec ERROR (' + localFolder + ')', err); },
+    stdout: stdout => { console.log('exec stdout (' + localFolder + ')', stdout); },
+    stderr: stderr => { console.log('exec stderr (' + localFolder + ')', stderr); }
+  };
 }
 
 function issueHandler(payload) {
@@ -43,15 +45,25 @@ function pushHandler(data) {
   localInstances.forEach(instance => {
     const { localFolder, pm2name } = instance;
     console.log(localFolder, instance);
-    const pushHandlerCallback = getPushHandlerCallback(localFolder);
-    let cmd = "cd " + localFolder + " && git pull";
-    console.log(pushHandlerCallback.toString(), cmd);
-    pushHandlerCallback(null, 'pouet stdout', 'pouet stderr');
-    if(pm2name) {
-      cmd += ' && pm2 restart ' + pm2name;
-    }
-    console.log('exec cmd:', cmd);
-    exec(cmd, pushHandlerCallback);
+    const callbacks = getExecCallbacks(localFolder);
+    console.log(callbacks, callbacks.stdout.toString());
+    const pullCmd = "cd " + localFolder + " && git pull";
+    console.log('exec cmd:', pullCmd);
+    exec(pullCmd)
+    .then(callbacks.stdout, callbacks.stderr)
+    .catch(callbacks.error)
+    .then(() => {
+      if(pm2name) {
+        console.log('exec', 'pm2 restart ' + pm2name);
+        return exec('pm2 restart ' + pm2name)
+        .then(callbacks.stdout, callbacks.stderr)
+        .catch(callbacks.error);
+      }
+      else {
+        console.log('no pm2');
+        return false;
+      }
+    });
   });
   // if(payload.commits.length === 0) {
   //   console.log('nothing to do');
