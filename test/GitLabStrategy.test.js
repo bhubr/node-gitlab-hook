@@ -110,4 +110,37 @@ describe('GitLabStrategy tests', () => {
     assert.equal(repository.url, repoUrl, "Repo url should be '" + repoUrl + "'");
     done();
   });
+
+  it('extract "pull request updated" event', done => {
+    const headers = {
+      'x-gitlab-event': 'Merge Request Hook'
+    };
+    const strategy = new GitLabStrategy(headers);
+    const payload = tools.getSamplePayload('gitlab', 'pullrequest-updated');
+    strategy.setData(payload);
+    const eventData = strategy.getEventData();
+    const repoUrl = 'https://gitlab.com/goodkarma/foobar';
+    const pullUrl = 'https://gitlab.com/goodkarma/foobar/merge_requests/6';
+    const pullBody = 'Hotfix for #32\r\nHoly broccoli!';
+    const { event, data } = eventData;
+    const { pullRequest, repository } = data;
+    assert.equal(event, 'pullrequest:updated', "Event should be 'pullrequest:updated'");
+    assert.equal(pullRequest.title, 'Source branch updated', "Pull request title should be 'Source branch updated'");
+    assert.equal(pullRequest.body, pullBody, "Pull request body should be '" + pullBody + "'");
+    assert.equal(pullRequest.number, 6, "Pull request number should be 6");
+    assert.equal(pullRequest.state, 'open', "Pull request state should be 'open'");
+    assert.equal(pullRequest.htmlUrl, pullUrl, "Pull request url should be '" + pullUrl + "'");
+    assert.equal(pullRequest.sourceBranch, 'source-branch', "Pull request's source branch should be 'source-branch'");
+    assert.equal(pullRequest.targetBranch, 'development', "Pull request's target branch should be 'development'");
+    assert.equal(pullRequest.sourceRepo.name, 'foobar', "Repo name should be 'foobar'");
+    assert.equal(pullRequest.sourceRepo.fullName, 'goodkarma/foobar', "Repo name should be 'goodkarma/foobar'");
+    assert.equal(pullRequest.sourceRepo.url, repoUrl, "Repo url should be '" + repoUrl + "'");
+    assert.equal(pullRequest.targetRepo.name, 'foobar', "Repo name should be 'foobar'");
+    assert.equal(pullRequest.targetRepo.fullName, 'goodkarma/foobar', "Repo name should be 'goodkarma/foobar'");
+    assert.equal(pullRequest.targetRepo.url, repoUrl, "Repo url should be '" + repoUrl + "'");
+    assert.equal(repository.name, 'foobar', "Repo name should be 'foobar'");
+    assert.equal(repository.fullName, 'goodkarma/foobar', "Repo name should be 'goodkarma/foobar'");
+    assert.equal(repository.url, repoUrl, "Repo url should be '" + repoUrl + "'");
+    done();
+  });
 });
