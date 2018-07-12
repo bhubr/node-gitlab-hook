@@ -83,6 +83,25 @@ const gitGetLastCommit = cwd => exec('git rev-parse HEAD', cwd)
 const gitGetChangedFiles = (fromCommitHash, cwd) => exec(`git diff-tree --no-commit-id --name-only -r ${fromCommitHash}`, cwd)
   .then(extractStdoutLines(0))
 
+const hasChangesIn = (files, folder) => files.some(f => f.startsWith(folder + '/'))
+// const didPackageJsonChange = (files, folder) => files.some(f => f === `${folder}/package.json`)
+const didPackageJsonChange = (files, folder) => {
+  const didChange = files.some(f => f === `${folder}/package.json`)
+  console.log('didPackageJsonChange', files, folder, `${folder}/package.json`, didChange)
+  return didChange
+}
+const npmInstall = folder => exec('npm install', folder)
+
+const npmInstallIfNeeded = (files, folder, cwd) => didPackageJsonChange(files, folder) ?
+  npmInstall(`${cwd}/${folder}`) : Promise.resolve()
+
+const handleChangesInBack = (files, cwd, backFolder, pm2name) => npmInstallIfNeeded(files, backFolder, cwd)
+  .then(() => exec(`pm2 restart ${pm2name}`))
+
+const handleChangesInBackIfNeeded = (files, cwd, backFolder, pm2name) => hasChangesIn(files, backFolder) ?
+  handleChangesInBack(files, cwd, backFolder, pm2name) : Promise.resolve()
+
+
 function pushHandler(data) {
   const { repos } = config;
   const { ref } = data;
@@ -95,7 +114,7 @@ function pushHandler(data) {
   }
 
   localInstances.forEach(instance => {
-    const { localFolder, pm2name, gitBranches } = instance;
+    const { localFolder, pm2name, gitBranches, back, reactApps } = instance;
     console.log(instance);
     const pullCallbacks = getExecCallbacks('last git pull')
     const shouldCheckoutToBranch = typeof gitBranches.includes === 'function' && gitBranches.includes(pushedBranch);
@@ -114,17 +133,20 @@ function pushHandler(data) {
       console.log(changedFiles)
       return changedFiles
     })
+    .then(
+      files => handleChangesInBackIfNeeded(files, localFolder, back, pm2name)
+    )
 //    const shouldCheckoutToBranch = typeof gitBranches.includes === 'function' && gitBranches.includes(pushedBranch);
 //    const withCheckoutCmd = shouldCheckoutToBranch ? `&& git pull && git checkout ${pushedBranch}` : '';
 //    const pullCmd = `cd ${localFolder} ${withCheckoutCmd} && git pull`;
 //    console.log('full pull cmd', pullCmd);
 //    const pullCallbacks = getExecCallbacks(pullCmd);
 //    exec(pullCmd)
-    .then(pullCallbacks.out)
-    .catch(pullCallbacks.error)
-    .then(({ stdout, stderr }) => {
-      const pullOutput = extractGitPullOutput(stderr);
-    })
+//    .then(pullCallbacks.out)
+//    .catch(pullCallbacks.error)
+//    .then(({ stdout, stderr }) => {
+//      const pullOutput = extractGitPullOutput(stderr);
+//    })
     .then(() => {
       if(pm2name) {
         const pm2Cmd = 'pm2 restart ' + pm2name;
