@@ -3,6 +3,7 @@ const hasNodeModule = fs.existsSync(__dirname + '/node_modules/git-hosting-webho
 const modulePath = hasNodeModule ? 'git-hosting-webhooks' : './index.js';
 const webhooks = require(modulePath);
 const nexecp = require('nexecp').exec;
+const Promise = require('bluebird');
 
 const exec = (cmd, cwd) => {
   console.log(`exec ${cmd} from ${cwd}`)
@@ -66,7 +67,7 @@ const hasPushedBranchLocally = (branch, cwd) => getLocalGitBranches(cwd)
 const isOnPushedBranch = (branch, cwd) => getCurrentGitBranch(cwd)
   .then(currentBranch => currentBranch === branch)
 
-const gitCheckout = (branch, cwd) => exec(`git checkout ${branch}`, cwd)
+const gitCheckout = (arg, cwd) => exec(`git checkout ${arg}`, cwd)
 const gitPull = cwd => exec('git pull', cwd)
 const gitPullFirstIfNeeded = (branch, cwd) =>
   hasPushedBranchLocally(branch, cwd)
@@ -83,14 +84,17 @@ const gitGetLastCommit = cwd => exec('git rev-parse HEAD', cwd)
 const gitGetChangedFiles = (fromCommitHash, cwd) => exec(`git diff-tree --no-commit-id --name-only -r ${fromCommitHash}`, cwd)
   .then(extractStdoutLines(0))
 
-const hasChangesIn = (files, folder) => files.some(f => f.startsWith(folder + '/'))
-// const didPackageJsonChange = (files, folder) => files.some(f => f === `${folder}/package.json`)
-const didPackageJsonChange = (files, folder) => {
-  const didChange = files.some(f => f === `${folder}/package.json`)
-  console.log('didPackageJsonChange', files, folder, `${folder}/package.json`, didChange)
-  return didChange
+const hasChangesIn = (files, folder) => {
+  const hasChanges = files.some(f => f.startsWith(folder + '/'))
+  console.log('hasChangesIn', files, folder, hasChanges)
+  return hasChanges
 }
+
+const didPackageJsonChange = (files, folder) => files.some(f => f === `${folder}/package.json`)
+
+// Have to checkout package-lock.json after npm install
 const npmInstall = folder => exec('npm install', folder)
+  .then(() => gitCheckout('package-lock.json', folder))
 
 const npmInstallIfNeeded = (files, folder, cwd) => didPackageJsonChange(files, folder) ?
   npmInstall(`${cwd}/${folder}`) : Promise.resolve()
@@ -98,9 +102,22 @@ const npmInstallIfNeeded = (files, folder, cwd) => didPackageJsonChange(files, f
 const handleChangesInBack = (files, cwd, backFolder, pm2name) => npmInstallIfNeeded(files, backFolder, cwd)
   .then(() => exec(`pm2 restart ${pm2name}`))
 
-const handleChangesInBackIfNeeded = (files, cwd, backFolder, pm2name) => hasChangesIn(files, backFolder) ?
+const handleChangesInBackIfNeeded = (files, cwd, backFolder, pm2name) => backFolder && hasChangesIn(files, backFolder) ?
   handleChangesInBack(files, cwd, backFolder, pm2name) : Promise.resolve()
 
+const rebuildReactApp = (cwd, app) => {
+  const timeStart = Date.now()
+  return exec('npm run build', `${cwd}/${app}`)
+    .then(() => console.log(`done rebuilding ${cwd}/${app} in ${ (Date.now() - timeStart) / 1000.0 } seconds`))
+}
+const handleChangesInReactApp = (files, cwd, app) => npmInstallIfNeeded(files, app, cwd)
+  .then(() => rebuildReactApp(cwd, app))
+
+const handleChangesInReactAppIfNeeded = (files, cwd, app) => hasChangesIn(files, app) ?
+  handleChangesInReactApp(files, cwd, app) : Promise.resolve()
+
+const handleChangesInReactAppsIfNeeded = (files, cwd, apps) => Array.isArray(apps) ?
+  Promise.map(apps, app => handleChangesInReactAppIfNeeded(files, cwd, app)) : Promise.resolve()
 
 function pushHandler(data) {
   const { repos } = config;
@@ -135,6 +152,7 @@ function pushHandler(data) {
     })
     .then(
       files => handleChangesInBackIfNeeded(files, localFolder, back, pm2name)
+        .then(() => handleChangesInReactAppsIfNeeded(files, localFolder, reactApps))
     )
 //    const shouldCheckoutToBranch = typeof gitBranches.includes === 'function' && gitBranches.includes(pushedBranch);
 //    const withCheckoutCmd = shouldCheckoutToBranch ? `&& git pull && git checkout ${pushedBranch}` : '';
@@ -147,7 +165,7 @@ function pushHandler(data) {
 //    .then(({ stdout, stderr }) => {
 //      const pullOutput = extractGitPullOutput(stderr);
 //    })
-    .then(() => {
+/*    .then(() => {
       if(pm2name) {
         const pm2Cmd = 'pm2 restart ' + pm2name;
         const pm2Callbacks = getExecCallbacks(pm2Cmd);
@@ -159,7 +177,7 @@ function pushHandler(data) {
         console.log('no pm2');
         return false;
       }
-    });
+    });*/
   });
   // if(payload.commits.length === 0) {
   //   console.log('nothing to do');

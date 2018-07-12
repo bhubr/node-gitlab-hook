@@ -4,6 +4,7 @@
   "description": "A node.js webhook listener for GitHub, GitLab and BitBucket.",
   "main": "index.js",
   "dependencies": {
+    "bluebird": "^3.5.1",
     "ip-range-check": "0.0.2",
     "nexecp": "^0.1.4",
     "temp": "^0.8.3"
