@@ -265,7 +265,7 @@ function serverHandler(req, res) {
     if (!data) {
     // if (!data || !data.repository || !data.repository.name) {
       console.log('!!!! INVALID JSON, missing data.repository or data.repository.name');
-
+console.log(data, typeof data)
        self.logger.error(Util.format('received invalid data from %s, returning 400\n\n',
          remoteAddress));
       return reply(400, res);

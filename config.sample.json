@@ -1,30 +1,57 @@
 {
-  "port": 3420,
-  "github": {
-    "secretToken": "your-github-secret-token"
-  },
+  "port": 3421,
   "gitlab": {
-    "secretToken": "your-gitlab-secret-token"
+    "secretToken": "bFLCFoFQ1qO0tzmOzVCqESSS4G6r2mSi"
+  },
+  "github": {
+    "secretToken": "hpSQ0VtRfQ8FZlMvhB14Y60gk0l4FwW-Uo7zMjT1AhIHYa7042Or7Cpl4tBChbL6"
   },
   "repos": {
-    "https://github.com/username/repo-slug1": [
+    "https://github.com/WildCodeSchool/toulouse-0218-js-alamo": [
       {
-        "localFolder":"/home/user/node/repo-slug1-prod",
-        "gitBranch": "master",
-        "pm2name": "repo-slug1-prod"
-      },
-      {
-        "localFolder":"/home/user/node/repo-slug1-dev",
-        "gitBranch": "{latest}",
-        "pm2name": "repo-slug1-dev"
+        "localFolder": "/home/bhu/node/toulouse-0218-js-alamo",
+        "gitBranches": ["master", "dev", "material"],
+        "reactApps": ["front-booker", "front-manager"],
+        "back": "back"
       }
     ],
-    "https://bitbucket.org/username/other-repo-slug1": [
+    "https://github.com/WildCodeSchool/toulouse-0218-js-luggagekeeper": [
       {
-        "localFolder":"/home/user/node/other-repo-slug1-prod",
-        "gitBranch": "master",
-        "pm2name": "other-repo-slug1-prod"
+        "localFolder": "/home/bhu/node/toulouse-0218-js-luggagekeeper",
+        "gitBranches": ["master", "dev", "serveur-test"]
+      }
+    ],
+    "https://github.com/WildCodeSchool/toulouse-0218-js-vyfe": [
+      {
+        "localFolder": "/home/bhu/node/toulouse-0218-js-vyfe",
+        "gitBranches": ["master", "dev", "firebaseTags", "testGitHubWebhook"]
+      }
+    ],
+    "https://github.com/bhubr/test-webhook": [
+      {
+        "localFolder": "/home/bhu/local-repositories/test-webhook-github",
+        "gitBranches": ["master"]
+      }
+    ],
+    "https://bitbucket.org/bhubr/ng-express-timetracker": [
+      {
+        "localFolder": "/home/bhu/node/ng-time-tracker",
+        "gitBranches": ["master"]
+      }
+    ],
+    "https://bitbucket.org/bhubr/test-webhook": [
+      {
+        "localFolder": "/home/bhu/local-repositories/test-webhook-bitbucket",
+        "gitBranches": ["master"]
+      }
+    ],
+    "https://github.com/bhubr/node-github-gitlab-bitbucket-hook": [
+      {
+        "localFolder": "/home/bhu/node/git-webhooks-development",
+        "gitBranches": ["development"],
+        "pm2name": "git-webhooks-development"
       }
     ]
   }
 }
+
