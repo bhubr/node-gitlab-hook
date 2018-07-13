@@ -5,3 +5,5 @@ package/
 Makefile.spec
 pm2.config.js
 config.json
+json/payloads/payload-*.json
+
