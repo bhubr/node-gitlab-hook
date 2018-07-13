@@ -73,10 +73,15 @@ const gitPullFirstIfNeeded = (branch, cwd) =>
   hasPushedBranchLocally(branch, cwd)
     .then(hasBranch => hasBranch ? Promise.resolve() : gitPull(cwd))
 
-const gitSwitchBranchIfNeeded = (targetBranch, cwd) => shouldSwitch =>
-  ! shouldSwitch ? Promise.resolve()
-  : gitPullFirstIfNeeded(targetBranch, cwd)
+const gitSwitchBranchIfNeeded = (targetBranch, cwd) => shouldSwitch => {
+  if(! shouldSwitch) {
+    console.log(`No need to switch to ${targetBranch}`)
+    return Promise.resolve()
+  }
+  console.log(`Switching to ${targetBranch}`)
+  return gitPullFirstIfNeeded(targetBranch, cwd)
     .then(() => gitCheckout(targetBranch, cwd))
+}
 
 const gitGetLastCommit = cwd => exec('git rev-parse HEAD', cwd)
   .then(({ stdout }) => stdout.trim())
