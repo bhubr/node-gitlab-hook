@@ -74,9 +74,9 @@ const gitPullFirstIfNeeded = (branch, cwd) =>
     .then(hasBranch => hasBranch ? Promise.resolve() : gitPull(cwd))
 
 const gitSwitchBranchIfNeeded = (targetBranch, cwd) => shouldSwitch =>
-  gitPullFirstIfNeeded(targetBranch, cwd)
+  ! shouldSwitch ? Promise.resolve()
+  : gitPullFirstIfNeeded(targetBranch, cwd)
     .then(() => gitCheckout(targetBranch, cwd))
-
 
 const gitGetLastCommit = cwd => exec('git rev-parse HEAD', cwd)
   .then(({ stdout }) => stdout.trim())
